@@ -6,9 +6,10 @@ import {
   Shield, Scan, Bell, BarChart3, ShoppingBag, LogOut, User,
   Settings, AlertTriangle, CheckCircle, Clock, TrendingUp,
   Star, ExternalLink, ChevronRight, Menu, X, Home,
-  Heart, FileText, Package
+  Heart, FileText, Package, Search, Loader2, ArrowLeft,
+  Barcode
 } from 'lucide-react'
-import { User as UserType } from '@/lib/types'
+import { User as UserType, ScanResult } from '@/lib/types'
 import { logout } from '@/lib/auth'
 import { MOCK_SCANS } from '@/lib/mock-data'
 import { AFFILIATE_PRODUCTS, getRecommendedProducts } from '@/lib/affiliate-products'
@@ -18,8 +19,10 @@ import ExposureTracker from './ExposureTracker'
 import ProfileSettings from './ProfileSettings'
 import StageWidget from './StageWidget'
 import RecallAlerts from './RecallAlerts'
+import BarcodeScanner from './BarcodeScanner'
 
 type Tab = 'home' | 'scan' | 'history' | 'shop' | 'tracker' | 'profile'
+type ScanMode = null | 'barcode' | 'name'
 
 interface Props {
   user: UserType
@@ -28,6 +31,76 @@ interface Props {
 export default function UserDashboard({ user }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('home')
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+
+  // Scan state
+  const [scanMode, setScanMode] = useState<ScanMode>(null)
+  const [showCamera, setShowCamera] = useState(false)
+  const [scanLoading, setScanLoading] = useState(false)
+  const [scanResult, setScanResult] = useState<ScanResult | null>(null)
+  const [scanError, setScanError] = useState<string | null>(null)
+  const [nameQuery, setNameQuery] = useState('')
+
+  const isAtScanLimit =
+    (user.plan === 'free' && (user.scansUsed ?? 0) >= 3) ||
+    (user.plan === 'starter' && (user.scanCredits ?? 0) <= 0)
+
+  async function lookupAndRecord(params: { barcode?: string; name?: string }) {
+    setScanLoading(true)
+    setScanError(null)
+
+    try {
+      const qs = params.barcode
+        ? `barcode=${encodeURIComponent(params.barcode)}`
+        : `name=${encodeURIComponent(params.name ?? '')}`
+
+      const productRes = await fetch(`/api/products?${qs}`)
+      const productData = await productRes.json()
+
+      if (!productRes.ok) {
+        setScanError(
+          productData.error === 'product_not_found'
+            ? "We couldn't find that product in our database. Try another barcode or search by name."
+            : 'Something went wrong fetching product data. Please try again.'
+        )
+        return
+      }
+
+      // Record the scan / deduct credit
+      const scanRes = await fetch('/api/scan', { method: 'POST' })
+      if (!scanRes.ok) {
+        const scanData = await scanRes.json()
+        if (scanData.error === 'scan_limit_reached') {
+          setScanError('limit_reached')
+          return
+        }
+      }
+
+      setScanResult(productData.product)
+      setScanMode(null)
+    } catch {
+      setScanError('Network error. Please check your connection and try again.')
+    } finally {
+      setScanLoading(false)
+    }
+  }
+
+  function handleBarcodeDetected(barcode: string) {
+    setShowCamera(false)
+    lookupAndRecord({ barcode })
+  }
+
+  function handleNameSearch(e: React.FormEvent) {
+    e.preventDefault()
+    if (!nameQuery.trim()) return
+    lookupAndRecord({ name: nameQuery })
+  }
+
+  function resetScan() {
+    setScanResult(null)
+    setScanError(null)
+    setScanMode(null)
+    setNameQuery('')
+  }
 
   const handleLogout = () => {
     logout()
@@ -354,11 +427,18 @@ export default function UserDashboard({ user }: Props) {
 
           {activeTab === 'scan' && (
             <div>
+              {/* Camera overlay */}
+              {showCamera && (
+                <BarcodeScanner
+                  onDetected={handleBarcodeDetected}
+                  onClose={() => setShowCamera(false)}
+                />
+              )}
+
               <h1 className="text-2xl font-black text-gray-900 mb-6">Scan Baby Food</h1>
 
-              {/* Scan gate for free/starter users with no scans left */}
-              {((user.plan === 'free' && (user.scansUsed ?? 0) >= 3) ||
-                (user.plan === 'starter' && (user.scanCredits ?? 0) <= 0)) && (
+              {/* Scan limit gate */}
+              {isAtScanLimit && !scanResult && (
                 <div className="bg-white rounded-2xl border-2 border-brand-200 shadow-sm p-8 text-center max-w-lg mx-auto mb-6">
                   <div className="text-5xl mb-4">🔒</div>
                   <h2 className="text-xl font-bold text-gray-900 mb-2">
@@ -380,38 +460,215 @@ export default function UserDashboard({ user }: Props) {
                 </div>
               )}
 
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center max-w-lg mx-auto">
-                <div className="w-20 h-20 bg-brand-50 border-4 border-dashed border-brand-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Scan className="w-10 h-10 text-brand-400" />
+              {/* Loading */}
+              {scanLoading && (
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center max-w-lg mx-auto">
+                  <Loader2 className="w-10 h-10 text-brand-500 animate-spin mx-auto mb-4" />
+                  <p className="font-semibold text-gray-800">Analyzing product…</p>
+                  <p className="text-sm text-gray-400 mt-1">Checking 2,400+ chemicals and additives</p>
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 mb-2">Choose Scan Method</h2>
-                <p className="text-gray-500 text-sm mb-6">Scan a barcode, photograph an ingredient label, or type a product name.</p>
+              )}
 
-                <div className="space-y-3">
-                  {[
-                    { icon: '📷', label: 'Photograph Ingredient Label', desc: 'AI reads the text automatically (OCR)' },
-                    { icon: '📊', label: 'Scan Barcode', desc: 'Instant product lookup from our database' },
-                    { icon: '⌨️', label: 'Type Product Name', desc: 'Search by brand, product, or ingredient' },
-                  ].map(method => (
-                    <button
-                      key={method.label}
-                      className="w-full flex items-center gap-4 p-4 border-2 border-gray-100 hover:border-brand-300 hover:bg-brand-50 rounded-xl transition-all text-left"
-                    >
-                      <span className="text-3xl">{method.icon}</span>
-                      <div>
-                        <p className="font-semibold text-gray-800">{method.label}</p>
-                        <p className="text-sm text-gray-400">{method.desc}</p>
-                      </div>
+              {/* Scan result */}
+              {!scanLoading && scanResult && (
+                <div className="max-w-lg mx-auto space-y-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <button onClick={resetScan} className="flex items-center gap-1.5 text-brand-600 font-semibold text-sm hover:underline">
+                      <ArrowLeft className="w-4 h-4" /> Scan Another
                     </button>
-                  ))}
-                </div>
+                  </div>
 
-                <div className="mt-6 bg-gray-50 rounded-xl p-4">
-                  <p className="text-xs text-gray-500">
-                    📝 <strong>Demo mode:</strong> Camera scanning requires mobile app. For this demo, explore your scan history to see how results look!
-                  </p>
+                  {/* Score card */}
+                  <div className={`rounded-2xl border-2 p-6 ${
+                    scanResult.overallScore === 'safe' ? 'bg-green-50 border-green-200' :
+                    scanResult.overallScore === 'caution' ? 'bg-yellow-50 border-yellow-200' :
+                    'bg-red-50 border-red-200'
+                  }`}>
+                    <div className="flex items-start gap-4">
+                      {scanResult.imageUrl && (
+                        <img src={scanResult.imageUrl} alt={scanResult.productName} className="w-16 h-16 object-contain rounded-xl bg-white border border-gray-100 flex-shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-black text-gray-900 text-lg leading-tight">{scanResult.productName}</p>
+                        <p className="text-gray-500 text-sm">{scanResult.brand}</p>
+                        <span className={`inline-block mt-2 px-3 py-1 rounded-full text-sm font-bold ${
+                          scanResult.overallScore === 'safe' ? 'bg-green-600 text-white' :
+                          scanResult.overallScore === 'caution' ? 'bg-yellow-500 text-white' :
+                          'bg-red-600 text-white'
+                        }`}>
+                          {scanResult.overallScore === 'safe' ? '✅ Safe' :
+                           scanResult.overallScore === 'caution' ? '⚠️ Caution' : '🚫 Danger'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Chemicals found */}
+                  {scanResult.chemicals.length > 0 ? (
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                      <h3 className="font-bold text-gray-900 mb-3">Chemicals / Additives Found</h3>
+                      <div className="space-y-3">
+                        {scanResult.chemicals.map((c, i) => (
+                          <div key={i} className={`p-4 rounded-xl border-l-4 ${
+                            c.level === 'high' ? 'bg-red-50 border-red-400' :
+                            c.level === 'medium' ? 'bg-yellow-50 border-yellow-400' :
+                            'bg-blue-50 border-blue-400'
+                          }`}>
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="font-bold text-gray-900 text-sm">{c.name}</p>
+                              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                                c.level === 'high' ? 'bg-red-600 text-white' :
+                                c.level === 'medium' ? 'bg-yellow-600 text-white' :
+                                'bg-blue-600 text-white'
+                              }`}>{c.level.toUpperCase()}</span>
+                            </div>
+                            <p className="text-xs text-gray-600 mb-1">{c.description}</p>
+                            <p className="text-xs text-gray-700 font-medium">Risk: {c.healthRisk}</p>
+                            {c.safeLimit && (
+                              <div className="flex gap-3 mt-1.5 text-xs">
+                                <span className="text-green-700">Safe limit: {c.safeLimit}</span>
+                                {c.detectedAmount && <span className="text-red-700">Detected: {c.detectedAmount}</span>}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-green-50 border border-green-200 rounded-2xl p-5 text-center">
+                      <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                      <p className="font-bold text-green-800">No harmful chemicals detected</p>
+                      <p className="text-green-700 text-sm mt-1">This product looks clean based on its ingredients.</p>
+                    </div>
+                  )}
+
+                  {/* Ingredients */}
+                  {scanResult.ingredients.length > 0 && (
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                      <h3 className="font-bold text-gray-900 mb-3">Ingredients</h3>
+                      <p className="text-sm text-gray-600 leading-relaxed">
+                        {scanResult.ingredients.join(', ')}
+                      </p>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={resetScan}
+                    className="w-full btn-primary py-3 rounded-xl font-bold text-sm"
+                  >
+                    Scan Another Product
+                  </button>
                 </div>
-              </div>
+              )}
+
+              {/* Error state */}
+              {!scanLoading && scanError && !scanResult && (
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center max-w-lg mx-auto">
+                  {scanError === 'limit_reached' ? (
+                    <>
+                      <div className="text-4xl mb-3">🔒</div>
+                      <p className="font-bold text-gray-900 mb-1">Scan limit reached</p>
+                      <p className="text-gray-500 text-sm mb-4">Upgrade to keep scanning.</p>
+                      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                        <Link href="/checkout?plan=starter" className="bg-gray-900 text-white font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-gray-800">
+                          50 Scans — $4.99
+                        </Link>
+                        <Link href="/checkout?plan=pro" className="btn-primary px-5 py-2.5 rounded-xl font-bold text-sm">
+                          Unlimited — $14.99/mo
+                        </Link>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle className="w-10 h-10 text-yellow-500 mx-auto mb-3" />
+                      <p className="font-bold text-gray-900 mb-1">Scan failed</p>
+                      <p className="text-gray-500 text-sm mb-4">{scanError}</p>
+                      <button onClick={resetScan} className="btn-primary px-6 py-2.5 rounded-xl font-bold text-sm">
+                        Try Again
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Scan options (when idle and no result/error) */}
+              {!scanLoading && !scanResult && !scanError && !isAtScanLimit && (
+                <div className="max-w-lg mx-auto">
+                  {scanMode === null && (
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
+                      <div className="w-20 h-20 bg-brand-50 border-4 border-dashed border-brand-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <Scan className="w-10 h-10 text-brand-400" />
+                      </div>
+                      <h2 className="text-xl font-bold text-gray-900 mb-2">Choose Scan Method</h2>
+                      <p className="text-gray-500 text-sm mb-6">Scan a barcode or search by product name.</p>
+
+                      <div className="space-y-3">
+                        <button
+                          onClick={() => { setScanMode('barcode'); setShowCamera(true) }}
+                          className="w-full flex items-center gap-4 p-4 border-2 border-gray-100 hover:border-brand-300 hover:bg-brand-50 rounded-xl transition-all text-left"
+                        >
+                          <span className="text-3xl">📷</span>
+                          <div>
+                            <p className="font-semibold text-gray-800">Scan Barcode</p>
+                            <p className="text-sm text-gray-400">Use your camera to scan a product barcode</p>
+                          </div>
+                          <ChevronRight className="w-5 h-5 text-gray-300 ml-auto flex-shrink-0" />
+                        </button>
+
+                        <button
+                          onClick={() => setScanMode('name')}
+                          className="w-full flex items-center gap-4 p-4 border-2 border-gray-100 hover:border-brand-300 hover:bg-brand-50 rounded-xl transition-all text-left"
+                        >
+                          <span className="text-3xl">⌨️</span>
+                          <div>
+                            <p className="font-semibold text-gray-800">Search by Name</p>
+                            <p className="text-sm text-gray-400">Type a product or brand name to look it up</p>
+                          </div>
+                          <ChevronRight className="w-5 h-5 text-gray-300 ml-auto flex-shrink-0" />
+                        </button>
+                      </div>
+
+                      {user.plan !== 'pro' && (
+                        <p className="mt-5 text-xs text-gray-400">
+                          {user.plan === 'free'
+                            ? `${3 - (user.scansUsed ?? 0)} free scan${3 - (user.scansUsed ?? 0) !== 1 ? 's' : ''} remaining`
+                            : `${user.scanCredits ?? 0} credits remaining`}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {scanMode === 'name' && (
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+                      <button onClick={() => setScanMode(null)} className="flex items-center gap-1.5 text-brand-600 font-semibold text-sm mb-5 hover:underline">
+                        <ArrowLeft className="w-4 h-4" /> Back
+                      </button>
+                      <h2 className="text-xl font-bold text-gray-900 mb-1">Search Product</h2>
+                      <p className="text-gray-500 text-sm mb-5">Enter a product name, brand, or ingredient.</p>
+                      <form onSubmit={handleNameSearch} className="space-y-3">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <input
+                            type="text"
+                            value={nameQuery}
+                            onChange={e => setNameQuery(e.target.value)}
+                            placeholder="e.g. Gerber Peas, Happy Baby, Cheerios…"
+                            className="w-full pl-9 pr-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-brand-400 transition-colors"
+                            autoFocus
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={!nameQuery.trim()}
+                          className="w-full btn-primary py-3 rounded-xl font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Analyze Product
+                        </button>
+                      </form>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
