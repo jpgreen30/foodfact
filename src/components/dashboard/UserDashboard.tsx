@@ -40,9 +40,14 @@ export default function UserDashboard({ user }: Props) {
   const [scanError, setScanError] = useState<string | null>(null)
   const [nameQuery, setNameQuery] = useState('')
 
+  // Local credit tracking — decremented immediately after each scan so the
+  // UI reflects the new count without a full page reload
+  const [localScansUsed, setLocalScansUsed] = useState(user.scansUsed ?? 0)
+  const [localCredits, setLocalCredits] = useState(user.scanCredits ?? 0)
+
   const isAtScanLimit =
-    (user.plan === 'free' && (user.scansUsed ?? 0) >= 3) ||
-    (user.plan === 'starter' && (user.scanCredits ?? 0) <= 0)
+    (user.plan === 'free' && localScansUsed >= 3) ||
+    (user.plan === 'starter' && localCredits <= 0)
 
   async function lookupAndRecord(params: { barcode?: string; name?: string }) {
     setScanLoading(true)
@@ -74,6 +79,10 @@ export default function UserDashboard({ user }: Props) {
           return
         }
       }
+
+      // Update local credit counters immediately
+      setLocalScansUsed(prev => prev + 1)
+      if (user.plan === 'starter') setLocalCredits(prev => Math.max(0, prev - 1))
 
       setScanResult(productData.product)
       setScanMode(null)
@@ -386,7 +395,7 @@ export default function UserDashboard({ user }: Props) {
                 <div className="mt-6 bg-gradient-to-r from-slate-900 to-brand-900 rounded-2xl p-6 text-white">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-sm text-gray-400 mb-1">Free Plan — {user.scansUsed ?? 0}/3 scans used</p>
+                      <p className="text-sm text-gray-400 mb-1">Free Plan — {localScansUsed}/3 scans used</p>
                       <h3 className="text-xl font-bold mb-1">Need More Scans?</h3>
                       <p className="text-gray-400 text-sm">
                         Get 50 credits for $4.99 (no subscription) or go unlimited with Pro at $14.99/mo.
@@ -407,7 +416,7 @@ export default function UserDashboard({ user }: Props) {
                 <div className="mt-6 bg-gradient-to-r from-slate-900 to-brand-900 rounded-2xl p-6 text-white">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-sm text-gray-400 mb-1">Starter Plan — {user.scanCredits ?? 0} credits remaining</p>
+                      <p className="text-sm text-gray-400 mb-1">Starter Plan — {localCredits} credits remaining</p>
                       <h3 className="text-xl font-bold mb-1">Running Low? Go Unlimited.</h3>
                       <p className="text-gray-400 text-sm">Top up 50 more credits or switch to Pro for unlimited access.</p>
                     </div>
@@ -631,8 +640,8 @@ export default function UserDashboard({ user }: Props) {
                       {user.plan !== 'pro' && (
                         <p className="mt-5 text-xs text-gray-400">
                           {user.plan === 'free'
-                            ? `${3 - (user.scansUsed ?? 0)} free scan${3 - (user.scansUsed ?? 0) !== 1 ? 's' : ''} remaining`
-                            : `${user.scanCredits ?? 0} credits remaining`}
+                            ? `${Math.max(0, 3 - localScansUsed)} free scan${Math.max(0, 3 - localScansUsed) !== 1 ? 's' : ''} remaining`
+                            : `${localCredits} credits remaining`}
                         </p>
                       )}
                     </div>

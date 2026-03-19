@@ -124,7 +124,7 @@ export const AFFILIATE_PRODUCTS: AffiliateProduct[] = [
     price: '$79.99',
     rating: 4.6,
     reviewCount: 11243,
-    imageUrl: 'https://m.media-amazon.com/images/I/71VFcHDq97L._SL1500_.jpg',
+    imageUrl: 'https://m.media-amazon.com/images/I/81YHJqUf2DL._SL1500_.jpg',
     affiliateUrl: amazonLink('B074DZWLQQ'),
     category: 'food-makers',
     tags: ['blender', 'batch-cooking', 'storage-cups', 'bpa-free'],
@@ -361,19 +361,73 @@ export function getProductsByCategory(category: string): AffiliateProduct[] {
   return AFFILIATE_PRODUCTS.filter(p => p.category === category)
 }
 
-export function getRecommendedProducts(concerns: string[], momStatus: string): AffiliateProduct[] {
+export function getRecommendedProducts(
+  concerns: string[],
+  momStatus: string,
+  options?: { pregnancyWeek?: number; babyAgeMonths?: number }
+): AffiliateProduct[] {
   const recommended: AffiliateProduct[] = []
+  const { pregnancyWeek, babyAgeMonths } = options ?? {}
 
   if (momStatus === 'expecting') {
-    recommended.push(...AFFILIATE_PRODUCTS.filter(p => p.category === 'prenatal-vitamins'))
+    if (pregnancyWeek !== undefined) {
+      // Trimester-specific prenatal vitamin picks
+      if (pregnancyWeek <= 12) {
+        // 1st trimester: folate / whole-food focus
+        recommended.push(...AFFILIATE_PRODUCTS.filter(p =>
+          p.category === 'prenatal-vitamins' &&
+          (p.tags.includes('whole-food') || p.tags.includes('folate') || p.id === 'p4' || p.id === 'p16')
+        ))
+      } else if (pregnancyWeek <= 26) {
+        // 2nd trimester: iron + DHA focus
+        recommended.push(...AFFILIATE_PRODUCTS.filter(p =>
+          p.category === 'prenatal-vitamins' &&
+          (p.tags.includes('dha') || p.tags.includes('iron') || p.id === 'p5' || p.id === 'p17')
+        ))
+      } else {
+        // 3rd trimester: calcium + prep for baby gear
+        recommended.push(...AFFILIATE_PRODUCTS.filter(p =>
+          p.category === 'prenatal-vitamins' || p.id === 'p10'
+        ))
+      }
+    } else {
+      recommended.push(...AFFILIATE_PRODUCTS.filter(p => p.category === 'prenatal-vitamins'))
+    }
   }
+
   if (momStatus === 'newborn' || momStatus === 'toddler') {
-    recommended.push(...AFFILIATE_PRODUCTS.filter(p =>
-      p.category === 'postnatal-vitamins' ||
-      p.category === 'organic-food' ||
-      p.category === 'food-makers'
-    ))
+    if (babyAgeMonths !== undefined) {
+      if (babyAgeMonths < 6) {
+        // 0–5 months: breastfeeding/lactation support + breastmilk-compatible food
+        recommended.push(...AFFILIATE_PRODUCTS.filter(p =>
+          p.tags.includes('breastfeeding') ||
+          p.tags.includes('lactation') ||
+          p.tags.includes('breastmilk-compatible') ||
+          p.category === 'postnatal-vitamins'
+        ))
+      } else if (babyAgeMonths < 12) {
+        // 6–11 months: introducing solids — stage-1 foods + feeding gear
+        recommended.push(...AFFILIATE_PRODUCTS.filter(p =>
+          p.tags.includes('stage-1') ||
+          p.category === 'feeding-gear' ||
+          p.category === 'food-makers'
+        ))
+      } else {
+        // 12+ months: toddler foods
+        recommended.push(...AFFILIATE_PRODUCTS.filter(p =>
+          p.tags.includes('toddler') ||
+          p.category === 'food-makers'
+        ))
+      }
+    } else {
+      recommended.push(...AFFILIATE_PRODUCTS.filter(p =>
+        p.category === 'postnatal-vitamins' ||
+        p.category === 'organic-food' ||
+        p.category === 'food-makers'
+      ))
+    }
   }
+
   if (concerns.includes('heavy-metals') || concerns.includes('pesticides')) {
     recommended.push(...AFFILIATE_PRODUCTS.filter(p =>
       p.category === 'testing-kits' ||
@@ -382,6 +436,7 @@ export function getRecommendedProducts(concerns: string[], momStatus: string): A
       p.tags.includes('low-arsenic')
     ))
   }
+
   if (concerns.includes('bpa')) {
     recommended.push(...AFFILIATE_PRODUCTS.filter(p =>
       p.tags.includes('bpa-free') && !recommended.find(r => r.id === p.id)

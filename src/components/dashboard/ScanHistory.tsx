@@ -25,7 +25,11 @@ function getSaferProducts(scan: ScanResult, userProfile?: UserProfile) {
   if (hasPesticides) extraConcerns.push('pesticides')
 
   const concerns = Array.from(new Set([...(userProfile?.concerns ?? []), ...extraConcerns]))
-  return getRecommendedProducts(concerns, userProfile?.momStatus ?? 'other').slice(0, 3)
+  return getRecommendedProducts(
+    concerns,
+    userProfile?.momStatus ?? 'other',
+    { babyAgeMonths: userProfile?.babyAgeMonths }
+  ).slice(0, 3)
 }
 
 interface LegalFormState {

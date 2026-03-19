@@ -97,14 +97,15 @@ export async function subscribeContact(
 ): Promise<void> {
   if (!process.env.BREVO_API_KEY) return
 
-  // Determine list
+  // Determine lists — every user always goes on the general list, plus the
+  // stage-specific list once momStatus is known
   const prenatalListId = parseInt(process.env.BREVO_LIST_ID_PRENATAL ?? '0')
   const postnatalListId = parseInt(process.env.BREVO_LIST_ID_POSTNATAL ?? '0')
+  const generalListId = parseInt(process.env.BREVO_LIST_ID_GENERAL ?? '0')
 
   const resolvedLists = listIds.length > 0 ? listIds : [
-    attributes.MOM_STATUS === 'expecting'
-      ? prenatalListId
-      : postnatalListId,
+    generalListId,
+    attributes.MOM_STATUS === 'expecting' ? prenatalListId : postnatalListId,
   ].filter(Boolean)
 
   const [firstName, ...rest] = name.split(' ')

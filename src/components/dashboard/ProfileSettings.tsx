@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { User, Bell, Shield, CreditCard, Settings, Check } from 'lucide-react'
+import { User, Bell, Shield, CreditCard, Settings, Check, AlertTriangle } from 'lucide-react'
 import { User as UserType } from '@/lib/types'
 
 interface Props {
@@ -9,12 +9,73 @@ interface Props {
 }
 
 export default function ProfileSettings({ user }: Props) {
-  const [saved, setSaved] = useState(false)
   const profile = user.profile
 
-  const handleSave = () => {
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+  const [name, setName] = useState(user.name)
+  const [momStatus, setMomStatus] = useState(profile?.momStatus ?? 'other')
+  const [dueDate, setDueDate] = useState(profile?.dueDate ?? '')
+  const [babyBirthDate, setBabyBirthDate] = useState(profile?.babyBirthDate ?? '')
+  const [babyName, setBabyName] = useState(profile?.babyName ?? '')
+
+  const [saving, setSaving] = useState(false)
+  const [saveState, setSaveState] = useState<'idle' | 'saved' | 'error'>('idle')
+  const [errorMsg, setErrorMsg] = useState('')
+
+  const needsBabyDate = momStatus === 'newborn' || momStatus === 'toddler'
+
+  async function handleSave() {
+    setSaving(true)
+    setSaveState('idle')
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) throw new Error('Not authenticated')
+
+      const babyAgeMonths = babyBirthDate
+        ? Math.max(0, Math.floor((Date.now() - new Date(babyBirthDate).getTime()) / (1000 * 60 * 60 * 24 * 30.44)))
+        : profile?.babyAgeMonths ?? 0
+
+      const res = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          name,
+          userProfile: {
+            momStatus,
+            dueDate: dueDate || null,
+            babyBirthDate: babyBirthDate || null,
+            babyAgeMonths,
+            babyName: babyName || null,
+            diet: profile?.diet ?? [],
+            concerns: profile?.concerns ?? [],
+            allergies: profile?.allergies ?? [],
+            prenatalConditions: profile?.prenatalConditions ?? [],
+            postnatalConditions: profile?.postnatalConditions ?? [],
+            breastfeeding: profile?.breastfeeding ?? false,
+            organicPreference: profile?.organicPreference ?? false,
+            notificationsEnabled: profile?.notificationsEnabled ?? true,
+            weeklyReportEnabled: profile?.weeklyReportEnabled ?? true,
+          },
+        }),
+      })
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.error || 'Save failed')
+      }
+
+      setSaveState('saved')
+      setTimeout(() => setSaveState('idle'), 3000)
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Could not save. Please try again.')
+      setSaveState('error')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -31,54 +92,90 @@ export default function ProfileSettings({ user }: Props) {
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">Full Name</label>
-              <input defaultValue={user.name} className="input-field" />
+              <input
+                value={name}
+                onChange={e => setName(e.target.value)}
+                className="input-field"
+              />
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
-              <input defaultValue={user.email} className="input-field" type="email" />
+              <input defaultValue={user.email} className="input-field bg-gray-50 cursor-not-allowed" type="email" disabled />
             </div>
           </div>
         </div>
 
-        {/* Baby Profile */}
-        {profile && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-xl">👶</span>
-              <h2 className="font-bold text-gray-900">Baby Profile</h2>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-4">
-              {profile.babyName && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Baby's Name</label>
-                  <input defaultValue={profile.babyName} className="input-field" />
-                </div>
-              )}
-              {profile.babyBirthDate && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Date of Birth</label>
-                  <input defaultValue={profile.babyBirthDate} className="input-field" type="date" />
-                </div>
-              )}
-              {profile.dueDate && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Due Date</label>
-                  <input defaultValue={profile.dueDate} className="input-field" type="date" />
-                </div>
-              )}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Journey Status</label>
-                <select defaultValue={profile.momStatus} className="input-field">
-                  <option value="planning">Planning to Conceive</option>
-                  <option value="expecting">Currently Expecting</option>
-                  <option value="newborn">New Baby (0-12 months)</option>
-                  <option value="toddler">Toddler (1-3 years)</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-            </div>
+        {/* Baby / Pregnancy Profile */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-xl">👶</span>
+            <h2 className="font-bold text-gray-900">Baby & Pregnancy Profile</h2>
           </div>
-        )}
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Journey Status</label>
+              <select
+                value={momStatus}
+                onChange={e => setMomStatus(e.target.value as any)}
+                className="input-field"
+              >
+                <option value="planning">Planning to Conceive</option>
+                <option value="expecting">Currently Expecting</option>
+                <option value="newborn">New Baby (0–12 months)</option>
+                <option value="toddler">Toddler (1–3 years)</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            {momStatus === 'expecting' && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  Due Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={e => setDueDate(e.target.value)}
+                  className={`input-field ${!dueDate ? 'border-red-300' : ''}`}
+                  min={new Date().toISOString().split('T')[0]}
+                />
+                {!dueDate && (
+                  <p className="text-red-500 text-xs mt-1">Required for trimester-specific recommendations.</p>
+                )}
+              </div>
+            )}
+
+            {needsBabyDate && (
+              <>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                    Baby&apos;s Date of Birth <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={babyBirthDate}
+                    onChange={e => setBabyBirthDate(e.target.value)}
+                    className={`input-field ${!babyBirthDate ? 'border-red-300' : ''}`}
+                    max={new Date().toISOString().split('T')[0]}
+                  />
+                  {!babyBirthDate && (
+                    <p className="text-red-500 text-xs mt-1">Required for age-specific safety tips.</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Baby&apos;s Name <span className="text-xs text-gray-400">(optional)</span></label>
+                  <input
+                    type="text"
+                    value={babyName}
+                    onChange={e => setBabyName(e.target.value)}
+                    placeholder="e.g. Lily"
+                    className="input-field"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        </div>
 
         {/* Safety Concerns */}
         {profile && profile.concerns.length > 0 && (
@@ -94,9 +191,6 @@ export default function ProfileSettings({ user }: Props) {
                 </span>
               ))}
             </div>
-            <button className="text-brand-600 text-sm font-semibold mt-3 hover:underline">
-              Edit concerns →
-            </button>
           </div>
         )}
 
@@ -159,48 +253,44 @@ export default function ProfileSettings({ user }: Props) {
             </div>
             {user.plan === 'free' && (
               <div className="flex flex-col gap-2 ml-4">
-                <a href="/checkout?plan=starter" className="text-sm text-gray-700 border border-gray-300 px-3 py-1.5 rounded-xl hover:bg-gray-50 text-center font-semibold">
-                  50 Scans — $4.99
-                </a>
-                <a href="/checkout?plan=pro" className="btn-primary text-sm px-3 py-1.5 rounded-xl text-center">
-                  Unlimited — $14.99/mo
-                </a>
+                <a href="/checkout?plan=starter" className="text-sm text-gray-700 border border-gray-300 px-3 py-1.5 rounded-xl hover:bg-gray-50 text-center font-semibold">50 Scans — $4.99</a>
+                <a href="/checkout?plan=pro" className="btn-primary text-sm px-3 py-1.5 rounded-xl text-center">Unlimited — $14.99/mo</a>
               </div>
             )}
             {user.plan === 'starter' && (
               <div className="flex flex-col gap-2 ml-4">
-                <a href="/checkout?plan=starter" className="text-sm text-gray-700 border border-gray-300 px-3 py-1.5 rounded-xl hover:bg-gray-50 text-center font-semibold">
-                  +50 Credits — $4.99
-                </a>
-                <a href="/checkout?plan=pro" className="btn-primary text-sm px-3 py-1.5 rounded-xl text-center">
-                  Go Unlimited
-                </a>
+                <a href="/checkout?plan=starter" className="text-sm text-gray-700 border border-gray-300 px-3 py-1.5 rounded-xl hover:bg-gray-50 text-center font-semibold">+50 Credits — $4.99</a>
+                <a href="/checkout?plan=pro" className="btn-primary text-sm px-3 py-1.5 rounded-xl text-center">Go Unlimited</a>
               </div>
             )}
             {user.plan === 'pro' && (
-              <button className="text-sm text-gray-500 hover:text-gray-700 border border-gray-200 px-4 py-2 rounded-xl">
-                Manage
-              </button>
+              <button className="text-sm text-gray-500 hover:text-gray-700 border border-gray-200 px-4 py-2 rounded-xl">Manage</button>
             )}
           </div>
         </div>
 
+        {/* Error */}
+        {saveState === 'error' && (
+          <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            {errorMsg}
+          </div>
+        )}
+
         {/* Save Button */}
         <button
           onClick={handleSave}
-          className={`w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
-            saved
-              ? 'bg-green-500 text-white'
-              : 'btn-primary'
+          disabled={saving}
+          className={`w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed ${
+            saveState === 'saved' ? 'bg-green-500 text-white' : 'btn-primary'
           }`}
         >
-          {saved ? (
+          {saveState === 'saved' ? (
             <><Check className="w-5 h-5" /> Saved!</>
+          ) : saving ? (
+            <><Settings className="w-4 h-4 animate-spin" /> Saving…</>
           ) : (
-            <>
-              <Settings className="w-4 h-4" />
-              Save Changes
-            </>
+            <><Settings className="w-4 h-4" /> Save Changes</>
           )}
         </button>
       </div>

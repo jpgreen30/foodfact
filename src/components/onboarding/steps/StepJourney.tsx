@@ -20,7 +20,11 @@ const STATUS_OPTIONS: { value: MomStatus; label: string; emoji: string; desc: st
 ]
 
 export default function StepJourney({ data, update, onNext, onBack }: Props) {
-  const canContinue = data.momStatus !== undefined
+  const needsBabyDate = data.momStatus === 'newborn' || data.momStatus === 'toddler'
+  const canContinue =
+    !!data.momStatus &&
+    (data.momStatus !== 'expecting' || !!data.dueDate) &&
+    (!needsBabyDate || !!data.babyBirthDate)
 
   const handleStatusSelect = (status: MomStatus) => {
     update({ momStatus: status })
@@ -63,17 +67,25 @@ export default function StepJourney({ data, update, onNext, onBack }: Props) {
       {/* Conditional date fields */}
       {data.momStatus === 'expecting' && (
         <div className="bg-pink-50 border border-pink-100 rounded-2xl p-5 mb-6">
-          <h3 className="font-bold text-pink-800 mb-3">📅 When is your due date?</h3>
+          <h3 className="font-bold text-pink-800 mb-3">
+            📅 When is your due date? <span className="text-red-500">*</span>
+          </h3>
           <input
             type="date"
             value={data.dueDate}
             onChange={e => update({ dueDate: e.target.value })}
-            className="input-field"
+            className={`input-field ${!data.dueDate ? 'border-red-300 focus:border-red-400' : ''}`}
             min={new Date().toISOString().split('T')[0]}
+            required
           />
-          <p className="text-pink-600 text-xs mt-2">
-            We'll use this to track your trimester and adjust prenatal safety recommendations.
-          </p>
+          {!data.dueDate && (
+            <p className="text-red-500 text-xs mt-1 font-medium">Required — needed to personalise your trimester tips.</p>
+          )}
+          {data.dueDate && (
+            <p className="text-pink-600 text-xs mt-2">
+              We'll use this to track your trimester and adjust prenatal safety recommendations.
+            </p>
+          )}
         </div>
       )}
 
@@ -91,7 +103,9 @@ export default function StepJourney({ data, update, onNext, onBack }: Props) {
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Date of Birth</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              Date of Birth <span className="text-red-500">*</span>
+            </label>
             <input
               type="date"
               value={data.babyBirthDate}
@@ -102,9 +116,13 @@ export default function StepJourney({ data, update, onNext, onBack }: Props) {
                 const ageMonths = Math.floor(ageMs / (1000 * 60 * 60 * 24 * 30.44))
                 update({ babyBirthDate: e.target.value, babyAgeMonths: Math.max(0, ageMonths) })
               }}
-              className="input-field"
+              className={`input-field ${!data.babyBirthDate ? 'border-red-300 focus:border-red-400' : ''}`}
               max={new Date().toISOString().split('T')[0]}
+              required
             />
+            {!data.babyBirthDate && (
+              <p className="text-red-500 text-xs mt-1 font-medium">Required — used to personalise age-specific safety tips.</p>
+            )}
           </div>
           {data.babyAgeMonths > 0 && (
             <div className="bg-blue-100 rounded-xl p-3">

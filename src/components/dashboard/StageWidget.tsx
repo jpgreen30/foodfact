@@ -110,7 +110,12 @@ export default function StageWidget({ userProfile }: StageWidgetProps) {
     accentColor = '#0d9488'
   }
 
-  const recommendedProducts = getRecommendedProducts(concerns ?? [], momStatus).slice(0, 2)
+  const pregnancyWeek = momStatus === 'expecting' && dueDate ? getPregnancyWeek(dueDate) : undefined
+  const recommendedProducts = getRecommendedProducts(
+    concerns ?? [],
+    momStatus,
+    { pregnancyWeek, babyAgeMonths }
+  ).slice(0, 2)
 
   return (
     <div className={`rounded-2xl bg-gradient-to-br ${gradientClass} border border-white p-5 mb-4`}>
