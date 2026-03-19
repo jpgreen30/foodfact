@@ -1,16 +1,14 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Shield, Eye, EyeOff, Scan, CheckCircle } from 'lucide-react'
-import { getUser, saveCurrentUser } from '@/lib/auth'
+import { Shield, Eye, EyeOff, Scan, CheckCircle, Loader2 } from 'lucide-react'
 
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const isSignup = searchParams.get('signup') === 'true'
-  const plan = searchParams.get('plan') || 'free'
 
   const [mode, setMode] = useState<'login' | 'signup'>(isSignup ? 'signup' : 'login')
   const [email, setEmail] = useState('')
@@ -25,26 +23,36 @@ function LoginForm() {
     setLoading(true)
     setError('')
 
-    await new Promise(r => setTimeout(r, 800)) // Simulate API call
+    const endpoint = mode === 'signup' ? '/api/auth/signup' : '/api/auth/login'
+    const body = mode === 'signup'
+      ? { email, password, name: name || email.split('@')[0] }
+      : { email, password }
 
-    const user = getUser(email, mode === 'signup' ? 'demo' : password)
-    if (user) {
-      if (mode === 'signup') {
-        user.name = name || email.split('@')[0]
-        user.plan = plan as 'free' | 'starter' | 'pro'
-      }
-      saveCurrentUser(user)
-      if (!user.onboardingComplete) {
-        router.push('/onboarding')
-      } else if (user.role === 'admin') {
-        router.push('/admin')
-      } else {
-        router.push('/dashboard')
-      }
-    } else {
-      setError('Invalid email or password. Try: sarah@example.com / user123 or admin@foodfactscanner.com / admin123')
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      setError(data.error || 'Something went wrong. Please try again.')
+      setLoading(false)
+      return
     }
-    setLoading(false)
+
+    if (mode === 'signup') {
+      // New users go to onboarding
+      router.push('/onboarding')
+    } else {
+      const profile = data.profile
+      if (profile?.onboarding_complete) {
+        router.push('/dashboard')
+      } else {
+        router.push('/onboarding')
+      }
+    }
   }
 
   return (
@@ -87,23 +95,6 @@ function LoginForm() {
             </button>
           </div>
 
-          {/* Demo credentials hint */}
-          {mode === 'login' && (
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4 text-sm">
-              <p className="font-semibold text-blue-800 mb-1">Demo Credentials:</p>
-              <p className="text-blue-700">User: sarah@example.com / user123</p>
-              <p className="text-blue-700">Admin: admin@foodfactscanner.com / admin123</p>
-            </div>
-          )}
-
-          {mode === 'signup' && plan !== 'free' && (
-            <div className="bg-brand-50 border border-brand-200 rounded-xl p-3 mb-4 text-sm">
-              <p className="text-brand-700 font-semibold">
-                ✓ Starting your 7-day free {plan.charAt(0).toUpperCase() + plan.slice(1)} trial
-              </p>
-            </div>
-          )}
-
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'signup' && (
               <div>
@@ -132,15 +123,16 @@ function LoginForm() {
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                {mode === 'signup' ? 'Create Password' : 'Password'}
+                {mode === 'signup' ? 'Create Password (min. 6 characters)' : 'Password'}
               </label>
               <div className="relative">
                 <input
                   type={showPw ? 'text' : 'password'}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder={mode === 'signup' ? 'Min. 8 characters' : '••••••••'}
+                  placeholder={mode === 'signup' ? 'Min. 6 characters' : '••••••••'}
                   required
+                  minLength={6}
                   className="input-field pr-12"
                 />
                 <button
@@ -151,9 +143,6 @@ function LoginForm() {
                   {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              {mode === 'signup' && (
-                <p className="text-xs text-gray-400 mt-1">For demo: use any password</p>
-              )}
             </div>
 
             {error && (
@@ -167,11 +156,7 @@ function LoginForm() {
               disabled={loading}
               className="w-full btn-primary flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-              ) : (
-                <Scan className="w-5 h-5" />
-              )}
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Scan className="w-5 h-5" />}
               {mode === 'signup' ? 'Create Free Account' : 'Log In'}
             </button>
           </form>
@@ -180,8 +165,8 @@ function LoginForm() {
             <div className="mt-6 space-y-2">
               {[
                 'Free account — no credit card required',
-                '5 free scans to start',
-                '7-day Pro trial included',
+                '3 free scans to start',
+                'Upgrade anytime from $4.99',
               ].map(item => (
                 <div key={item} className="flex items-center gap-2 text-sm text-gray-600">
                   <CheckCircle className="w-4 h-4 text-brand-500 flex-shrink-0" />
@@ -220,9 +205,11 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-900 flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" />
-    </div>}>
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-brand-400 animate-spin" />
+      </div>
+    }>
       <LoginForm />
     </Suspense>
   )

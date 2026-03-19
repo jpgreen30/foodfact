@@ -2,39 +2,22 @@
 
 import { useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { getCurrentUser, saveCurrentUser } from '@/lib/auth'
 import { CheckCircle, Loader2 } from 'lucide-react'
+import { Suspense } from 'react'
 
-export default function CheckoutSuccessPage() {
+function SuccessContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const plan = searchParams.get('plan') as 'starter' | 'pro' | null
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    if (!plan) return
-
-    const user = getCurrentUser()
-    if (user) {
-      const updated = { ...user, plan }
-      if (plan === 'starter') {
-        updated.scanCredits = (user.scanCredits ?? 0) + 50
-      }
-      saveCurrentUser(updated)
-    }
-
-    const t = setTimeout(() => setReady(true), 1200)
+    // Give the webhook a moment to update the DB, then confirm
+    const t = setTimeout(() => setReady(true), 2000)
     return () => clearTimeout(t)
-  }, [plan])
+  }, [])
 
-  const handleContinue = () => {
-    const user = getCurrentUser()
-    if (user?.onboardingComplete) {
-      router.push('/dashboard')
-    } else {
-      router.push('/onboarding')
-    }
-  }
+  const handleContinue = () => router.push('/dashboard')
 
   if (!ready) {
     return (
@@ -42,6 +25,7 @@ export default function CheckoutSuccessPage() {
         <div className="text-center">
           <Loader2 className="w-10 h-10 text-brand-600 animate-spin mx-auto mb-4" />
           <p className="text-gray-600 font-semibold">Activating your plan…</p>
+          <p className="text-gray-400 text-sm mt-1">This only takes a moment</p>
         </div>
       </div>
     )
@@ -63,7 +47,7 @@ export default function CheckoutSuccessPage() {
         </p>
         <p className="text-gray-400 text-sm mb-8">
           {plan === 'pro'
-            ? 'Your subscription is active. Cancel anytime.'
+            ? 'Your subscription is active. Cancel anytime from your profile.'
             : 'Need more later? Top up anytime from your profile.'}
         </p>
         <button
@@ -74,5 +58,17 @@ export default function CheckoutSuccessPage() {
         </button>
       </div>
     </div>
+  )
+}
+
+export default function CheckoutSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 className="w-10 h-10 text-brand-600 animate-spin" />
+      </div>
+    }>
+      <SuccessContent />
+    </Suspense>
   )
 }
