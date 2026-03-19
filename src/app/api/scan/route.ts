@@ -1,13 +1,14 @@
-import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { getUserFromRequest } from '@/lib/supabase/server'
 
 // Called whenever a user performs a scan — increments counter / deducts credit
-export async function POST() {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export async function POST(req: NextRequest) {
+  const auth = await getUserFromRequest(req)
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { data: profile } = await supabase
+  const { user, admin } = auth
+
+  const { data: profile } = await admin
     .from('profiles')
     .select('plan, scans_used, scan_credits')
     .eq('id', user.id)
@@ -31,7 +32,7 @@ export async function POST() {
     updates.scan_credits = profile.scan_credits - 1
   }
 
-  await supabase.from('profiles').update(updates).eq('id', user.id)
+  await admin.from('profiles').update(updates).eq('id', user.id)
 
   // If scan result data is provided, trigger scan result email (fire-and-forget)
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'

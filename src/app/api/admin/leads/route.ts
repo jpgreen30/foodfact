@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHmac } from 'crypto'
-import { createClient } from '@/lib/supabase/server'
+import { getUserFromRequest, createAdminClient } from '@/lib/supabase/server'
 import { ChemicalFound } from '@/lib/types'
 
 export interface LeadPayload {
@@ -24,11 +24,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const auth = await getUserFromRequest(req)
+    const admin = createAdminClient()
+    const user = auth?.user ?? null
 
     // Save lead to Supabase
-    const { data: savedLead, error: dbError } = await supabase
+    const { data: savedLead, error: dbError } = await admin
       .from('legal_leads')
       .insert({
         user_id: user?.id ?? null,
@@ -75,7 +76,7 @@ export async function POST(req: NextRequest) {
       }).catch(() => null)
 
       if (savedLead?.id) {
-        await supabase
+        await admin
           .from('legal_leads')
           .update({
             status: webhookRes?.ok ? 'sent' : 'failed',
@@ -94,19 +95,21 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const auth = await getUserFromRequest(req)
+    if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const { user } = auth
+    const admin = createAdminClient()
 
     // Only admins can list leads
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single()
     if (profile?.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     const url = new URL(req.url)
     const limit = parseInt(url.searchParams.get('limit') ?? '50')
     const offset = parseInt(url.searchParams.get('offset') ?? '0')
 
-    const { data: leads, count } = await supabase
+    const { data: leads, count } = await admin
       .from('legal_leads')
       .select('*', { count: 'exact' })
       .order('created_at', { ascending: false })

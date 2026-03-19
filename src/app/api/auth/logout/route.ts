@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 
+// Sign-out is handled client-side via the browser Supabase client.
+// This route exists as a no-op for backward compatibility.
 export async function POST() {
-  const supabase = createClient()
-  await supabase.auth.signOut()
   return NextResponse.json({ ok: true })
 }

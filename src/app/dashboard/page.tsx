@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { User } from '@/lib/types'
 import UserDashboard from '@/components/dashboard/UserDashboard'
 import { Loader2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 function profileToUser(profile: Record<string, unknown>): User {
   return {
@@ -27,20 +28,21 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    import('@/lib/supabase/client').then(({ createClient }) => {
-      const supabase = createClient()
-      supabase.auth.getUser().then(async ({ data: { user: authUser }, error }) => {
-        if (error || !authUser) {
+    const supabase = createClient()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        if (!session) {
           router.push('/login')
           return
         }
         const { data: profile } = await supabase
           .from('profiles')
           .select('*')
-          .eq('id', authUser.id)
+          .eq('id', session.user.id)
           .single()
         if (!profile) {
-          router.push('/login')
+          router.push('/onboarding')
           return
         }
         if (!profile.onboarding_complete) {
@@ -49,8 +51,12 @@ export default function DashboardPage() {
         }
         setUser(profileToUser(profile))
         setLoading(false)
-      })
+      } else if (event === 'SIGNED_OUT') {
+        router.push('/login')
+      }
     })
+
+    return () => subscription.unsubscribe()
   }, [router])
 
   if (loading || !user) {

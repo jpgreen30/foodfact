@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getUserFromRequest } from '@/lib/supabase/server'
 
-export async function GET() {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export async function GET(req: NextRequest) {
+  const auth = await getUserFromRequest(req)
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { data: profile } = await supabase
+  const { user, admin } = auth
+  const { data: profile } = await admin
     .from('profiles')
     .select('*')
     .eq('id', user.id)
@@ -16,17 +16,17 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await getUserFromRequest(req)
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const { user, admin } = auth
   const body = await req.json()
   const allowed = ['name', 'onboarding_complete']
   const updates = Object.fromEntries(
     Object.entries(body).filter(([k]) => allowed.includes(k))
   )
 
-  const { data, error } = await supabase
+  const { data, error } = await admin
     .from('profiles')
     .update(updates)
     .eq('id', user.id)
@@ -38,7 +38,7 @@ export async function PATCH(req: NextRequest) {
   // Save extended user_profiles data when provided
   if (body.userProfile) {
     const p = body.userProfile
-    await supabase.from('user_profiles').upsert({
+    await admin.from('user_profiles').upsert({
       user_id: user.id,
       mom_status: p.momStatus ?? null,
       due_date: p.dueDate || null,
