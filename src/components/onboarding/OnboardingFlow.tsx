@@ -64,6 +64,8 @@ export default function OnboardingFlow() {
   const router = useRouter()
   const [step, setStep] = useState(0)
   const [data, setData] = useState<OnboardingData>(INITIAL_DATA)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   const totalVisibleSteps = STEPS.length - 1 // exclude "complete"
 
@@ -72,52 +74,83 @@ export default function OnboardingFlow() {
   }
 
   const next = () => {
-    // Skip postnatal step for expecting moms; it's merged into prenatal
     setStep(s => Math.min(s + 1, STEPS.length - 1))
   }
 
   const back = () => setStep(s => Math.max(s - 1, 0))
 
   const complete = async () => {
+    setSaving(true)
+    setSaveError(null)
+
     const { createClient } = await import('@/lib/supabase/client')
     const supabase = createClient()
     const { data: { session } } = await supabase.auth.getSession()
 
+    let saved = false
+
     if (session?.access_token) {
-      const token = session.access_token
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+      const userProfile = {
+        momStatus: data.momStatus,
+        dueDate: data.dueDate,
+        babyName: data.babyName,
+        babyBirthDate: data.babyBirthDate,
+        babyAgeMonths: data.babyAgeMonths,
+        diet: data.diet,
+        concerns: data.concerns,
+        allergies: data.allergies,
+        prenatalConditions: data.prenatalConditions,
+        postnatalConditions: data.postnatalConditions,
+        breastfeeding: data.breastfeeding,
+        organicPreference: data.organicPreference,
+        notificationsEnabled: data.notificationsEnabled,
+        weeklyReportEnabled: data.weeklyReportEnabled,
       }
 
-      // Mark onboarding complete via admin-backed API (bypasses RLS)
-      const res = await fetch('/api/user/profile', {
-        method: 'PATCH',
-        headers,
-        body: JSON.stringify({
-          onboarding_complete: true,
-          userProfile: {
-            momStatus: data.momStatus,
-            dueDate: data.dueDate,
-            babyName: data.babyName,
-            babyBirthDate: data.babyBirthDate,
-            babyAgeMonths: data.babyAgeMonths,
-            diet: data.diet,
-            concerns: data.concerns,
-            allergies: data.allergies,
-            prenatalConditions: data.prenatalConditions,
-            postnatalConditions: data.postnatalConditions,
-            breastfeeding: data.breastfeeding,
-            organicPreference: data.organicPreference,
-            notificationsEnabled: data.notificationsEnabled,
-            weeklyReportEnabled: data.weeklyReportEnabled,
+      // Try admin API first (bypasses RLS, handles missing profile row)
+      try {
+        const res = await fetch('/api/user/profile', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
           },
-        }),
-      })
-      if (!res.ok) console.error('Failed to save onboarding:', await res.text())
+          body: JSON.stringify({ onboarding_complete: true, userProfile }),
+        })
+        if (res.ok) {
+          saved = true
+        } else {
+          const err = await res.text()
+          console.warn('API save failed, trying direct DB fallback:', res.status, err)
+        }
+      } catch (e) {
+        console.warn('API request failed, trying direct DB fallback:', e)
+      }
+
+      // Fallback: update directly via browser client (works when profile row exists)
+      if (!saved && session.user) {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ onboarding_complete: true })
+          .eq('id', session.user.id)
+        if (!error) {
+          saved = true
+        } else {
+          console.error('Direct DB update also failed:', error)
+          setSaveError(`Could not save your profile (${error.message}). Please try again.`)
+          setSaving(false)
+          return
+        }
+      }
+    } else {
+      // No session — navigate anyway; dashboard will handle redirect
+      router.push('/dashboard')
+      return
     }
 
-    router.push('/dashboard')
+    if (saved) {
+      router.push('/dashboard')
+    }
   }
 
   const currentStep = STEPS[step]
@@ -186,6 +219,11 @@ export default function OnboardingFlow() {
       {/* Step Content */}
       <div className="flex-1 px-4 py-8">
         <div className="max-w-2xl mx-auto">
+          {saveError && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+              {saveError}
+            </div>
+          )}
           {step === 0 && <StepWelcome {...stepProps} />}
           {step === 1 && <StepJourney {...stepProps} />}
           {step === 2 && (
@@ -197,7 +235,7 @@ export default function OnboardingFlow() {
           {step === 4 && <StepConcerns {...stepProps} />}
           {step === 5 && <StepAllergies {...stepProps} />}
           {step === 6 && <StepNotifications {...stepProps} />}
-          {step === 7 && <StepComplete data={data} onComplete={complete} />}
+          {step === 7 && <StepComplete data={data} onComplete={complete} saving={saving} />}
         </div>
       </div>
     </div>

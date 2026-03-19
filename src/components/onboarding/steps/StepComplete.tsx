@@ -6,9 +6,10 @@ import { OnboardingData } from '../OnboardingFlow'
 interface Props {
   data: OnboardingData
   onComplete: () => void
+  saving?: boolean
 }
 
-export default function StepComplete({ data, onComplete }: Props) {
+export default function StepComplete({ data, onComplete, saving = false }: Props) {
   const summaryItems = [
     { label: 'Journey', value: {
       expecting: '🤰 Expecting Mom',
@@ -105,10 +106,11 @@ export default function StepComplete({ data, onComplete }: Props) {
 
       <button
         onClick={onComplete}
-        className="btn-primary flex items-center gap-2 mx-auto text-lg px-8 py-4"
+        disabled={saving}
+        className="btn-primary flex items-center gap-2 mx-auto text-lg px-8 py-4 disabled:opacity-60"
       >
         <Scan className="w-5 h-5" />
-        Go to My Dashboard
+        {saving ? 'Saving...' : 'Go to My Dashboard'}
       </button>
     </div>
   )
