@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { Loader2 } from 'lucide-react'
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const searchParams = useSearchParams()
   const plan = searchParams.get('plan')
   const [error, setError] = useState<string | null>(null)
@@ -54,5 +54,20 @@ export default function CheckoutPage() {
         <p className="text-gray-600 font-semibold">Redirecting to checkout…</p>
       </div>
     </div>
+  )
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <Loader2 className="w-10 h-10 text-brand-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 font-semibold">Loading…</p>
+        </div>
+      </div>
+    }>
+      <CheckoutContent />
+    </Suspense>
   )
 }
