@@ -26,7 +26,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ user: data.user })
   } catch (err) {
-    console.error('Signup error:', err)
-    return NextResponse.json({ error: 'Registration failed. Please try again.' }, { status: 500 })
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('Signup error:', message)
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
