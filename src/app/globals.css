@@ -46,7 +46,8 @@ body {
     @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-6;
   }
   .input-field {
-    @apply w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-200 text-gray-800 placeholder-gray-400;
+    /* text-base = 16px — prevents iOS auto-zoom on focus */
+    @apply w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-200 text-base text-gray-800 placeholder-gray-400;
   }
   .badge-safe {
     @apply bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full;
