@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2026-02-25.clover',
-})
-
-const PRICE_IDS: Record<string, string> = {
-  starter: process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER!,
-  pro: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO!,
-}
-
 export async function POST(req: NextRequest) {
   try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2026-02-25.clover',
+    })
+
+    const PRICE_IDS: Record<string, string> = {
+      starter: process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER!,
+      pro: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO!,
+    }
+
     const { plan, userId } = await req.json()
 
     if (!plan || !PRICE_IDS[plan]) {
