@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Shield, ChevronRight, ChevronLeft, Check } from 'lucide-react'
-import { UserProfile, MomStatus, DietType, Concern } from '@/lib/types'
+import { MomStatus, DietType, Concern } from '@/lib/types'
 
 import StepWelcome from './steps/StepWelcome'
 import StepJourney from './steps/StepJourney'
@@ -79,28 +79,30 @@ export default function OnboardingFlow() {
   const back = () => setStep(s => Math.max(s - 1, 0))
 
   const complete = async () => {
-    const userProfile: UserProfile = {
-      momStatus: data.momStatus,
-      dueDate: data.dueDate,
-      babyName: data.babyName,
-      babyBirthDate: data.babyBirthDate,
-      babyAgeMonths: data.babyAgeMonths,
-      diet: data.diet,
-      concerns: data.concerns,
-      allergies: data.allergies,
-      prenatalConditions: data.prenatalConditions,
-      postnatalConditions: data.postnatalConditions,
-      breastfeeding: data.breastfeeding,
-      organicPreference: data.organicPreference,
-      notificationsEnabled: data.notificationsEnabled,
-      weeklyReportEnabled: data.weeklyReportEnabled,
-    }
+    const { createClient } = await import('@/lib/supabase/client')
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      // Update profile onboarding flag
+      await supabase.from('profiles').update({ onboarding_complete: true }).eq('id', user.id)
 
-    await fetch('/api/user/profile', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ onboarding_complete: true, userProfile }),
-    }).catch(() => {})
+      // Upsert extended onboarding data
+      await supabase.from('user_profiles').upsert({
+        user_id: user.id,
+        mom_status: data.momStatus ?? null,
+        due_date: data.dueDate || null,
+        baby_name: data.babyName || null,
+        baby_birth_date: data.babyBirthDate || null,
+        baby_age_months: data.babyAgeMonths ?? null,
+        diet: data.diet ?? [],
+        concerns: data.concerns ?? [],
+        allergies: data.allergies ?? [],
+        breastfeeding: data.breastfeeding ?? false,
+        organic_preference: data.organicPreference ?? false,
+        notifications_enabled: data.notificationsEnabled ?? true,
+        weekly_report_enabled: data.weeklyReportEnabled ?? true,
+      }, { onConflict: 'user_id' })
+    }
 
     router.push('/dashboard')
   }

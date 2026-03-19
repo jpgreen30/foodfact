@@ -58,10 +58,13 @@ function LoginForm() {
           return
         }
 
-        // Check onboarding status
-        const sessionRes = await fetch('/api/auth/session')
-        const sessionData = await sessionRes.json()
-        if (sessionData.profile?.onboarding_complete) {
+        // Check onboarding status directly via browser client
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarding_complete')
+          .eq('id', data.user.id)
+          .single()
+        if (profile?.onboarding_complete) {
           router.push('/dashboard')
         } else {
           router.push('/onboarding')

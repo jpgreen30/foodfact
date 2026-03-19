@@ -27,10 +27,19 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/auth/session')
-      .then(r => r.json())
-      .then(({ user: authUser, profile }) => {
-        if (!authUser || !profile) {
+    import('@/lib/supabase/client').then(({ createClient }) => {
+      const supabase = createClient()
+      supabase.auth.getUser().then(async ({ data: { user: authUser }, error }) => {
+        if (error || !authUser) {
+          router.push('/login')
+          return
+        }
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', authUser.id)
+          .single()
+        if (!profile) {
           router.push('/login')
           return
         }
@@ -41,7 +50,7 @@ export default function DashboardPage() {
         setUser(profileToUser(profile))
         setLoading(false)
       })
-      .catch(() => router.push('/login'))
+    })
   }, [router])
 
   if (loading || !user) {
