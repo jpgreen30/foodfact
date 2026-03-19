@@ -4,6 +4,7 @@ import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Shield, Eye, EyeOff, Scan, CheckCircle, Loader2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 function LoginForm() {
   const router = useRouter()
@@ -24,32 +25,43 @@ function LoginForm() {
     setError('')
 
     try {
-      const endpoint = mode === 'signup' ? '/api/auth/signup' : '/api/auth/login'
-      const body = mode === 'signup'
-        ? { email, password, name: name || email.split('@')[0] }
-        : { email, password }
+      const supabase = createClient()
 
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.error || 'Something went wrong. Please try again.')
-        setLoading(false)
-        return
-      }
-
-      setLoading(false)
       if (mode === 'signup') {
-        // New users go to onboarding
+        // Create the user server-side (admin API, email auto-confirmed)
+        const res = await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, name: name || email.split('@')[0] }),
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          setError(data.error || 'Something went wrong. Please try again.')
+          setLoading(false)
+          return
+        }
+
+        // Sign in client-side so the browser Supabase client owns the session
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+        if (signInError) {
+          setError(signInError.message)
+          setLoading(false)
+          return
+        }
+
         router.push('/onboarding')
       } else {
-        const profile = data.profile
-        if (profile?.onboarding_complete) {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+        if (error) {
+          setError(error.message)
+          setLoading(false)
+          return
+        }
+
+        // Check onboarding status
+        const sessionRes = await fetch('/api/auth/session')
+        const sessionData = await sessionRes.json()
+        if (sessionData.profile?.onboarding_complete) {
           router.push('/dashboard')
         } else {
           router.push('/onboarding')

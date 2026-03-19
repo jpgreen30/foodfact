@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import { createClient } from '@/lib/supabase/server'
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,12 +27,6 @@ export async function POST(req: NextRequest) {
       name: name || email.split('@')[0],
     }, { onConflict: 'id', ignoreDuplicates: true })
 
-    // Sign in immediately so session cookies are set
-    const supabase = createClient()
-    const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
-
-    if (signInError) return NextResponse.json({ error: signInError.message }, { status: 400 })
-
     // Fire-and-forget: subscribe to Brevo + send welcome email
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
     if (baseUrl) {
@@ -44,7 +37,8 @@ export async function POST(req: NextRequest) {
       }).catch(() => {})
     }
 
-    return NextResponse.json({ user: data.user })
+    // Return success — the client will sign in using the browser Supabase client
+    return NextResponse.json({ ok: true })
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
     console.error('Signup error:', message)
