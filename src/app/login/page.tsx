@@ -42,6 +42,7 @@ function LoginForm() {
       return
     }
 
+    setLoading(false)
     if (mode === 'signup') {
       // New users go to onboarding
       router.push('/onboarding')
