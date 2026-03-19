@@ -16,6 +16,8 @@ import ScanHistory from './ScanHistory'
 import AffiliateShop from './AffiliateShop'
 import ExposureTracker from './ExposureTracker'
 import ProfileSettings from './ProfileSettings'
+import StageWidget from './StageWidget'
+import RecallAlerts from './RecallAlerts'
 
 type Tab = 'home' | 'scan' | 'history' | 'shop' | 'tracker' | 'profile'
 
@@ -204,6 +206,12 @@ export default function UserDashboard({ user }: Props) {
                   </div>
                 ))}
               </div>
+
+              {/* Stage Widget */}
+              {profile && <StageWidget userProfile={profile} />}
+
+              {/* Recall Alerts */}
+              <RecallAlerts userName={user.name} userEmail={user.email} />
 
               {/* Quick Scan */}
               <div className="bg-gradient-to-r from-brand-600 to-brand-500 rounded-2xl p-6 mb-6 text-white">
@@ -407,8 +415,48 @@ export default function UserDashboard({ user }: Props) {
             </div>
           )}
 
-          {activeTab === 'history' && <ScanHistory scans={MOCK_SCANS} />}
-          {activeTab === 'shop' && <AffiliateShop products={AFFILIATE_PRODUCTS} profile={user.profile} />}
+          {activeTab === 'history' && (
+            <ScanHistory
+              scans={MOCK_SCANS}
+              userProfile={user.profile}
+              userName={user.name}
+              userEmail={user.email}
+            />
+          )}
+          {activeTab === 'shop' && (
+            <div>
+              {/* Featured Picks Banner */}
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5 mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h2 className="font-bold text-gray-900 text-base">🔥 This Week&apos;s Featured Picks</h2>
+                    <p className="text-xs text-gray-500">Curated by our safety experts</p>
+                  </div>
+                  <span className="text-xs font-bold bg-amber-100 text-amber-700 px-2 py-1 rounded-full">Amazon Deals</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {AFFILIATE_PRODUCTS.filter(p => p.badge).slice(0, 3).map(product => (
+                    <a
+                      key={product.id}
+                      href={product.affiliateUrl}
+                      target="_blank"
+                      rel="noopener noreferrer sponsored"
+                      className="bg-white rounded-xl p-3 border border-amber-100 hover:border-amber-300 hover:shadow-sm transition-all"
+                    >
+                      <img src={product.imageUrl} alt={product.title} className="w-full h-24 object-cover rounded-lg mb-2" />
+                      <span className="inline-block bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full mb-1">{product.badge}</span>
+                      <p className="text-xs font-bold text-gray-800 line-clamp-2 mb-1">{product.title}</p>
+                      <p className="text-sm font-bold text-green-600">{product.price}</p>
+                      <p className="text-xs text-amber-600 font-semibold mt-1 flex items-center gap-1">
+                        Buy on Amazon <ExternalLink className="w-3 h-3" />
+                      </p>
+                    </a>
+                  ))}
+                </div>
+              </div>
+              <AffiliateShop products={AFFILIATE_PRODUCTS} profile={user.profile} />
+            </div>
+          )}
           {activeTab === 'tracker' && <ExposureTracker scans={MOCK_SCANS} />}
           {activeTab === 'profile' && <ProfileSettings user={user} />}
         </div>

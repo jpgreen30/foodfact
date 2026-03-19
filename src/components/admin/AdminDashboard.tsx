@@ -5,17 +5,30 @@ import Link from 'next/link'
 import {
   Shield, Users, BarChart3, ShoppingBag, Settings, LogOut,
   TrendingUp, DollarSign, Scan, AlertTriangle, UserCheck,
-  Menu, X, Home, Bell, Database, Star
+  Menu, X, Home, Bell, Database, Star, Scale, Copy, CheckCheck,
+  ExternalLink, RefreshCw
 } from 'lucide-react'
 import { logout } from '@/lib/auth'
 import { ADMIN_STATS, MOCK_USER_LIST } from '@/lib/mock-data'
 import { AFFILIATE_PRODUCTS } from '@/lib/affiliate-products'
 
-type AdminTab = 'overview' | 'users' | 'affiliate' | 'products' | 'alerts' | 'settings'
+type AdminTab = 'overview' | 'users' | 'affiliate' | 'products' | 'alerts' | 'leads' | 'settings'
+
+// Mock lead data
+const MOCK_LEADS = [
+  { id: 'l1', name: 'Sarah M.', email: 's***@gmail.com', productName: 'Gerber 2nd Foods Peas', source: 'scan', status: 'sent', createdAt: '2026-03-19', chemicals: [{ name: 'Inorganic Arsenic', level: 'high' }] },
+  { id: 'l2', name: 'Jennifer K.', email: 'j***@yahoo.com', productName: 'Organic Baby Oatmeal Cereal', source: 'recall', status: 'sent', createdAt: '2026-03-18', chemicals: [] },
+  { id: 'l3', name: 'Maria R.', email: 'm***@outlook.com', productName: 'Stage 2 Sweet Potato Puree', source: 'recall', status: 'pending', createdAt: '2026-03-17', chemicals: [] },
+  { id: 'l4', name: 'Ashley T.', email: 'a***@gmail.com', productName: 'Gerber 2nd Foods Carrots', source: 'scan', status: 'failed', createdAt: '2026-03-16', chemicals: [{ name: 'Lead', level: 'high' }] },
+]
 
 export default function AdminDashboard() {
   const [tab, setTab] = useState<AdminTab>('overview')
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [webhookUrl, setWebhookUrl] = useState('')
+  const [webhookSaved, setWebhookSaved] = useState(false)
+  const [webhookCopied, setWebhookCopied] = useState(false)
+  const WEBHOOK_SECRET = 'ffs_whsec_a8f3d2e1b5c4...' // mock
 
   const handleLogout = () => {
     logout()
@@ -30,6 +43,7 @@ export default function AdminDashboard() {
     { id: 'affiliate', label: 'Affiliate Revenue', icon: DollarSign },
     { id: 'products', label: 'Product Database', icon: Database },
     { id: 'alerts', label: 'Recall Alerts', icon: Bell },
+    { id: 'leads', label: 'Legal Leads', icon: Scale },
     { id: 'settings', label: 'Settings', icon: Settings },
   ]
 
@@ -595,6 +609,96 @@ export default function AdminDashboard() {
             </div>
           )}
 
+          {/* Legal Leads */}
+          {tab === 'leads' && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h1 className="text-2xl font-black text-gray-900">Legal Leads</h1>
+                  <p className="text-sm text-gray-500 mt-1">Mass-tort leads from dangerous scan results and recall alerts</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <p className="text-2xl font-black text-gray-900">{MOCK_LEADS.length}</p>
+                    <p className="text-xs text-gray-500">Total Leads</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-black text-green-600">{MOCK_LEADS.filter(l => l.status === 'sent').length}</p>
+                    <p className="text-xs text-gray-500">Forwarded</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stats Row */}
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                {[
+                  { label: 'From Scans', value: MOCK_LEADS.filter(l => l.source === 'scan').length, color: 'text-blue-600 bg-blue-50' },
+                  { label: 'From Recalls', value: MOCK_LEADS.filter(l => l.source === 'recall').length, color: 'text-red-600 bg-red-50' },
+                  { label: 'Pending Retry', value: MOCK_LEADS.filter(l => l.status !== 'sent').length, color: 'text-amber-600 bg-amber-50' },
+                ].map(stat => (
+                  <div key={stat.label} className={`rounded-2xl ${stat.color} p-4 text-center`}>
+                    <p className="text-3xl font-black">{stat.value}</p>
+                    <p className="text-sm font-semibold">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Leads Table */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="p-5 border-b border-gray-100">
+                  <h2 className="font-bold text-gray-900">Lead Log</h2>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        {['Date', 'Name', 'Email', 'Product / Chemical', 'Source', 'Status', 'Action'].map(h => (
+                          <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {MOCK_LEADS.map(lead => (
+                        <tr key={lead.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 text-sm text-gray-500">{lead.createdAt}</td>
+                          <td className="px-4 py-3 text-sm font-semibold text-gray-900">{lead.name}</td>
+                          <td className="px-4 py-3 text-sm text-gray-500">{lead.email}</td>
+                          <td className="px-4 py-3">
+                            <p className="text-sm font-semibold text-gray-800">{lead.productName}</p>
+                            {lead.chemicals.map(c => (
+                              <span key={c.name} className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold mr-1">{c.name}</span>
+                            ))}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`text-xs font-bold px-2 py-1 rounded-full ${lead.source === 'scan' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
+                              {lead.source === 'scan' ? '📷 Scan' : '🚨 Recall'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                              lead.status === 'sent' ? 'bg-green-100 text-green-700' :
+                              lead.status === 'failed' ? 'bg-red-100 text-red-700' :
+                              'bg-amber-100 text-amber-700'
+                            }`}>
+                              {lead.status === 'sent' ? '✓ Sent' : lead.status === 'failed' ? '✗ Failed' : '⏳ Pending'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            {lead.status !== 'sent' && (
+                              <button className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-semibold">
+                                <RefreshCw className="w-3 h-3" /> Retry
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Settings */}
           {tab === 'settings' && (
             <div>
@@ -606,7 +710,7 @@ export default function AdminDashboard() {
                     {[
                       { label: 'Platform Name', value: 'FoodFactScanner' },
                       { label: 'Support Email', value: 'hello@foodfactscanner.com' },
-                      { label: 'Amazon Affiliate Tag', value: 'foodfactscanner-20' },
+                      { label: 'Amazon Affiliate Tag', value: 'foodfacts01-20' },
                     ].map(field => (
                       <div key={field.label}>
                         <label className="block text-sm font-semibold text-gray-700 mb-1.5">{field.label}</label>
@@ -614,6 +718,83 @@ export default function AdminDashboard() {
                       </div>
                     ))}
                     <button className="btn-primary text-sm px-4 py-2">Save Changes</button>
+                  </div>
+                </div>
+
+                {/* Legal Leads Webhook */}
+                <div className="bg-white rounded-2xl border-2 border-purple-100 shadow-sm p-5">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Scale className="w-5 h-5 text-purple-600" />
+                    <h2 className="font-bold text-gray-900">⚖️ Legal Leads Webhook</h2>
+                  </div>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Configure where mass-tort leads are forwarded. Leads are generated when users scan a high-risk product or click &ldquo;Free Legal Review&rdquo; on a recall alert.
+                  </p>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">Law Firm Webhook URL</label>
+                      <div className="flex gap-2">
+                        <input
+                          value={webhookUrl}
+                          onChange={e => { setWebhookUrl(e.target.value); setWebhookSaved(false) }}
+                          placeholder="https://lawfirm.com/webhook/leads"
+                          className="input-field flex-1"
+                        />
+                        <button
+                          onClick={() => setWebhookSaved(true)}
+                          className="bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 py-2 rounded-xl text-sm transition-colors flex-shrink-0"
+                        >
+                          {webhookSaved ? '✓ Saved' : 'Save'}
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1">Set via <code className="bg-gray-100 px-1 rounded">LEGAL_LEADS_WEBHOOK_URL</code> env var on Vercel</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">Webhook Signing Secret</label>
+                      <div className="flex gap-2 items-center">
+                        <code className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 font-mono truncate">
+                          {WEBHOOK_SECRET}
+                        </code>
+                        <button
+                          onClick={() => { navigator.clipboard.writeText(WEBHOOK_SECRET); setWebhookCopied(true); setTimeout(() => setWebhookCopied(false), 2000) }}
+                          className="flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-xl transition-colors flex-shrink-0"
+                        >
+                          {webhookCopied ? <CheckCheck className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                          {webhookCopied ? 'Copied!' : 'Copy'}
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1">Verify inbound requests with <code className="bg-gray-100 px-1 rounded">X-FFS-Signature</code> header (HMAC-SHA256)</p>
+                    </div>
+
+                    {/* Recent Leads Mini Table */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-sm font-semibold text-gray-700">Recent Leads</label>
+                        <button onClick={() => setTab('leads')} className="text-xs text-purple-600 font-semibold hover:underline flex items-center gap-1">
+                          View All <ExternalLink className="w-3 h-3" />
+                        </button>
+                      </div>
+                      <div className="rounded-xl border border-gray-100 overflow-hidden">
+                        {MOCK_LEADS.slice(0, 5).map((lead, i) => (
+                          <div key={lead.id} className={`flex items-center justify-between px-3 py-2.5 text-sm ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-gray-400 text-xs">{lead.createdAt}</span>
+                              <span className="font-semibold text-gray-800 truncate">{lead.name}</span>
+                              <span className={`text-xs px-1.5 py-0.5 rounded font-bold ${lead.source === 'scan' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
+                                {lead.source}
+                              </span>
+                            </div>
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${
+                              lead.status === 'sent' ? 'bg-green-100 text-green-700' :
+                              lead.status === 'failed' ? 'bg-red-100 text-red-700' :
+                              'bg-amber-100 text-amber-700'
+                            }`}>
+                              {lead.status}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
 

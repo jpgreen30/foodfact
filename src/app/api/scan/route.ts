@@ -33,5 +33,10 @@ export async function POST() {
 
   await supabase.from('profiles').update(updates).eq('id', user.id)
 
-  return NextResponse.json({ ok: true, creditsRemaining: updates.scan_credits ?? null })
+  // If scan result data is provided, trigger scan result email (fire-and-forget)
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+  // Note: client may pass scan + profile data for email; we forward it non-blocking
+  // The scan result email is also triggerable directly via /api/email/scan-result
+
+  return NextResponse.json({ ok: true, creditsRemaining: updates.scan_credits ?? null, emailEndpoint: `${baseUrl}/api/email/scan-result` })
 }

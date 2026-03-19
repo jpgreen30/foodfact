@@ -34,5 +34,26 @@ export async function PATCH(req: NextRequest) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+
+  // When onboarding completes, update Brevo contact with full profile attributes
+  if (body.onboarding_complete === true && body.userProfile) {
+    const p = body.userProfile
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+    fetch(`${baseUrl}/api/email/subscribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: user.email,
+        name: data?.name ?? '',
+        momStatus: p.momStatus,
+        dueDate: p.dueDate,
+        babyAgeMonths: p.babyAgeMonths,
+        breastfeeding: p.breastfeeding,
+        plan: data?.plan ?? 'free',
+        sendWelcome: false,
+      }),
+    }).catch(console.error)
+  }
+
   return NextResponse.json({ profile: data })
 }

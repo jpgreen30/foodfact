@@ -1,7 +1,7 @@
 import { AffiliateProduct } from './types'
 
-// Amazon affiliate tag: foodfactscanner-20
-const TAG = 'foodfactscanner-20'
+// Amazon affiliate tag: foodfacts01-20
+const TAG = 'foodfacts01-20'
 
 function amazonLink(asin: string): string {
   return `https://www.amazon.com/dp/${asin}?tag=${TAG}`
@@ -213,6 +213,148 @@ export const AFFILIATE_PRODUCTS: AffiliateProduct[] = [
     tags: ['european', 'biodynamic', 'no-corn-syrup', 'dha'],
     badge: 'Cleanest Formula',
   },
+
+  // NEW: More Prenatal Vitamins
+  {
+    id: 'p16',
+    title: 'New Chapter Perfect Prenatal Multivitamin',
+    description: 'Fermented whole-food prenatal. Gentle on empty stomach. 24 nutrients including DHA, D3, iron.',
+    price: '$46.95',
+    rating: 4.7,
+    reviewCount: 18204,
+    imageUrl: 'https://m.media-amazon.com/images/I/71vJcWqmhQL._SL1500_.jpg',
+    affiliateUrl: amazonLink('B01M4MFBZ4'),
+    category: 'prenatal-vitamins',
+    tags: ['prenatal', 'fermented', 'whole-food', 'gentle-stomach', 'dha'],
+    badge: 'Midwife Approved',
+  },
+  {
+    id: 'p17',
+    title: "Nature Made Prenatal Multi + DHA",
+    description: 'USP verified. 200mg DHA from fish oil. Essential nutrients for mom and baby. Easy swallow softgel.',
+    price: '$19.99',
+    rating: 4.6,
+    reviewCount: 31567,
+    imageUrl: 'https://m.media-amazon.com/images/I/71vFQ3i6-tL._SL1500_.jpg',
+    affiliateUrl: amazonLink('B001F0R8OE'),
+    category: 'prenatal-vitamins',
+    tags: ['prenatal', 'dha', 'usp-verified', 'budget-friendly'],
+    badge: 'Best Budget',
+  },
+
+  // NEW: Water Filter (Heavy Metals)
+  {
+    id: 'p18',
+    title: 'Clearly Filtered Water Pitcher — Removes 365+ Contaminants',
+    description: 'Removes 99.9% of lead, arsenic, fluoride, and chloramine. NSF certified. Perfect for baby formula.',
+    price: '$89.99',
+    rating: 4.8,
+    reviewCount: 7823,
+    imageUrl: 'https://m.media-amazon.com/images/I/71HqMzeIoGL._SL1500_.jpg',
+    affiliateUrl: amazonLink('B01N4N7GMC'),
+    category: 'testing-kits',
+    tags: ['water-filter', 'heavy-metals', 'lead-removal', 'arsenic', 'nsf-certified', 'no-heavy-metals'],
+    badge: 'Heavy Metals Protection',
+  },
+
+  // NEW: Organic Toddler Snacks
+  {
+    id: 'p19',
+    title: "Serenity Kids Organic Toddler Puffs — Veggie & Grain",
+    description: 'No rice (low arsenic). Organic veggies, no added sugar. Allergen-friendly. 12+ months.',
+    price: '$21.99',
+    rating: 4.7,
+    reviewCount: 4312,
+    imageUrl: 'https://m.media-amazon.com/images/I/71Q9lO8pGYL._SL1500_.jpg',
+    affiliateUrl: amazonLink('B09B3QPPQB'),
+    category: 'organic-food',
+    tags: ['toddler', 'no-rice', 'low-arsenic', 'organic', 'no-sugar', 'snacks'],
+    badge: 'Low Arsenic',
+  },
+  {
+    id: 'p20',
+    title: "Once Upon a Farm Organic Toddler Pouches — Variety Pack",
+    description: 'Cold-pressed, never heated. No preservatives. Real whole food ingredients. 3rd party tested.',
+    price: '$29.99',
+    rating: 4.6,
+    reviewCount: 9871,
+    imageUrl: 'https://m.media-amazon.com/images/I/81sJk25gYGL._SL1500_.jpg',
+    affiliateUrl: amazonLink('B07MKB83GS'),
+    category: 'organic-food',
+    tags: ['toddler', 'cold-pressed', 'organic', 'no-preservatives', 'pouches'],
+  },
+  {
+    id: 'p21',
+    title: "Sprout Organic Toddler Meals — Power Pack Variety",
+    description: 'USDA organic complete toddler meals. Balanced macros. No artificial anything. BPA-free packaging.',
+    price: '$34.99',
+    rating: 4.5,
+    reviewCount: 3201,
+    imageUrl: 'https://m.media-amazon.com/images/I/71lGiNH3vRL._SL1500_.jpg',
+    affiliateUrl: amazonLink('B07GVQKMS4'),
+    category: 'organic-food',
+    tags: ['toddler', 'organic', 'complete-meal', 'bpa-free'],
+  },
+
+  // NEW: BPA-Free Storage Set
+  {
+    id: 'p22',
+    title: 'OXO Tot Glass Baby Food Storage Containers (20-piece)',
+    description: 'Borosilicate glass, no BPA/BPS/phthalates. Stackable design. Oven, microwave & freezer safe.',
+    price: '$39.99',
+    rating: 4.8,
+    reviewCount: 6543,
+    imageUrl: 'https://m.media-amazon.com/images/I/71kn8-LKbQL._SL1500_.jpg',
+    affiliateUrl: amazonLink('B07PQHKR3M'),
+    category: 'storage',
+    tags: ['glass', 'bpa-free', 'bps-free', 'phthalate-free', 'freezer-safe', 'stackable'],
+    badge: 'Zero Chemical Leaching',
+  },
+
+  // NEW: Organic Meal Pouches
+  {
+    id: 'p23',
+    title: "Amara Organic Baby Food — Breastmilk Mixing Powder",
+    description: 'Mix with breast milk or formula. No water — preserves nutrients. Single-ingredient organic.',
+    price: '$27.99',
+    rating: 4.7,
+    reviewCount: 2847,
+    imageUrl: 'https://m.media-amazon.com/images/I/71zF4v0e1kL._SL1500_.jpg',
+    affiliateUrl: amazonLink('B07KPQDQDP'),
+    category: 'organic-food',
+    tags: ['organic', 'breastmilk-compatible', 'no-water', 'single-ingredient', 'stage-1'],
+    badge: 'Breastmilk Mixing',
+  },
+
+  // NEW: Lactation Supplement
+  {
+    id: 'p24',
+    title: 'Legendairy Milk Organic Lactation Supplement',
+    description: 'Fenugreek-free formula. Organic herbs: goat\'s rue, moringa, shatavari. 3rd-party tested.',
+    price: '$32.99',
+    rating: 4.6,
+    reviewCount: 14203,
+    imageUrl: 'https://m.media-amazon.com/images/I/71Mv9F4qrML._SL1500_.jpg',
+    affiliateUrl: amazonLink('B07C3VQ6D4'),
+    category: 'postnatal-vitamins',
+    tags: ['lactation', 'breastfeeding', 'fenugreek-free', 'organic', 'milk-supply'],
+    badge: 'Top Lactation Pick',
+  },
+
+  // NEW: Postnatal Vitamin
+  {
+    id: 'p25',
+    title: 'Perelel Postpartum Pack — Trimester-Specific Vitamins',
+    description: 'OB-formulated postpartum support. Omega-3, iron, choline, vitamin D. Individual daily packs.',
+    price: '$55.00',
+    rating: 4.7,
+    reviewCount: 3891,
+    imageUrl: 'https://m.media-amazon.com/images/I/71oS3JkOjzL._SL1500_.jpg',
+    affiliateUrl: amazonLink('B08T1GGQ8T'),
+    category: 'postnatal-vitamins',
+    tags: ['postnatal', 'ob-formulated', 'omega-3', 'choline', 'daily-packs'],
+    badge: 'OB Formulated',
+  },
 ]
 
 export function getProductsByCategory(category: string): AffiliateProduct[] {
@@ -234,7 +376,10 @@ export function getRecommendedProducts(concerns: string[], momStatus: string): A
   }
   if (concerns.includes('heavy-metals') || concerns.includes('pesticides')) {
     recommended.push(...AFFILIATE_PRODUCTS.filter(p =>
-      p.category === 'testing-kits' || p.tags.includes('no-heavy-metals')
+      p.category === 'testing-kits' ||
+      p.tags.includes('no-heavy-metals') ||
+      p.tags.includes('water-filter') ||
+      p.tags.includes('low-arsenic')
     ))
   }
   if (concerns.includes('bpa')) {
