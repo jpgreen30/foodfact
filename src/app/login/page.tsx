@@ -31,7 +31,7 @@ function LoginForm() {
     if (user) {
       if (mode === 'signup') {
         user.name = name || email.split('@')[0]
-        user.plan = plan as 'free' | 'pro' | 'family'
+        user.plan = plan as 'free' | 'starter' | 'pro'
       }
       saveCurrentUser(user)
       if (!user.onboardingComplete) {

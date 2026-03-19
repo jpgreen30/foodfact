@@ -11,7 +11,8 @@ const MOCK_USERS: User[] = [
     plan: 'pro',
     onboardingComplete: true,
     createdAt: '2024-01-15',
-    scansThisMonth: 23,
+    scansUsed: 23,
+    scanCredits: 0,
     totalScans: 187,
     profile: {
       momStatus: 'newborn',
@@ -37,7 +38,8 @@ const MOCK_USERS: User[] = [
     plan: 'pro',
     onboardingComplete: true,
     createdAt: '2023-11-01',
-    scansThisMonth: 0,
+    scansUsed: 0,
+    scanCredits: 0,
     totalScans: 0,
   },
 ]
@@ -60,7 +62,8 @@ export function getUser(email: string, password: string): User | null {
       plan: 'free',
       onboardingComplete: false,
       createdAt: new Date().toISOString(),
-      scansThisMonth: 0,
+      scansUsed: 0,
+      scanCredits: 0,
       totalScans: 0,
     }
   }

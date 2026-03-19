@@ -77,7 +77,7 @@ export default function UserDashboard({ user }: Props) {
               <div className="flex items-center gap-1.5">
                 <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                   user.plan === 'pro' ? 'bg-brand-100 text-brand-700' :
-                  user.plan === 'family' ? 'bg-purple-100 text-purple-700' :
+                  user.plan === 'starter' ? 'bg-blue-100 text-blue-700' :
                   'bg-gray-100 text-gray-600'
                 }`}>
                   {user.plan.toUpperCase()}
@@ -300,23 +300,44 @@ export default function UserDashboard({ user }: Props) {
                 </div>
               </div>
 
-              {/* Upgrade CTA for free users */}
+              {/* Upgrade CTA */}
               {user.plan === 'free' && (
                 <div className="mt-6 bg-gradient-to-r from-slate-900 to-brand-900 rounded-2xl p-6 text-white">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-sm text-gray-400 mb-1">You're on the Free Plan</p>
-                      <h3 className="text-xl font-bold mb-1">Unlock Unlimited Scans & More</h3>
+                      <p className="text-sm text-gray-400 mb-1">Free Plan — {user.scansUsed ?? 0}/3 scans used</p>
+                      <h3 className="text-xl font-bold mb-1">Need More Scans?</h3>
                       <p className="text-gray-400 text-sm">
-                        {user.scansThisMonth}/5 scans used this month. Upgrade to Pro for unlimited access.
+                        Get 50 credits for $4.99 (no subscription) or go unlimited with Pro at $14.99/mo.
                       </p>
                     </div>
-                    <Link
-                      href="/login?signup=true&plan=pro"
-                      className="bg-brand-500 text-white font-bold px-5 py-2.5 rounded-xl hover:bg-brand-400 transition-colors flex-shrink-0 ml-4"
-                    >
-                      Upgrade to Pro
-                    </Link>
+                    <div className="flex flex-col gap-2 flex-shrink-0">
+                      <Link href="/checkout?plan=starter" className="bg-white text-gray-900 font-bold px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors text-sm text-center">
+                        50 Scans — $4.99
+                      </Link>
+                      <Link href="/checkout?plan=pro" className="bg-brand-500 text-white font-bold px-4 py-2 rounded-xl hover:bg-brand-400 transition-colors text-sm text-center">
+                        Unlimited — $14.99/mo
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {user.plan === 'starter' && (
+                <div className="mt-6 bg-gradient-to-r from-slate-900 to-brand-900 rounded-2xl p-6 text-white">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm text-gray-400 mb-1">Starter Plan — {user.scanCredits ?? 0} credits remaining</p>
+                      <h3 className="text-xl font-bold mb-1">Running Low? Go Unlimited.</h3>
+                      <p className="text-gray-400 text-sm">Top up 50 more credits or switch to Pro for unlimited access.</p>
+                    </div>
+                    <div className="flex flex-col gap-2 flex-shrink-0">
+                      <Link href="/checkout?plan=starter" className="bg-white text-gray-900 font-bold px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors text-sm text-center">
+                        +50 Credits — $4.99
+                      </Link>
+                      <Link href="/checkout?plan=pro" className="bg-brand-500 text-white font-bold px-4 py-2 rounded-xl hover:bg-brand-400 transition-colors text-sm text-center">
+                        Unlimited — $14.99/mo
+                      </Link>
+                    </div>
                   </div>
                 </div>
               )}
@@ -326,6 +347,31 @@ export default function UserDashboard({ user }: Props) {
           {activeTab === 'scan' && (
             <div>
               <h1 className="text-2xl font-black text-gray-900 mb-6">Scan Baby Food</h1>
+
+              {/* Scan gate for free/starter users with no scans left */}
+              {((user.plan === 'free' && (user.scansUsed ?? 0) >= 3) ||
+                (user.plan === 'starter' && (user.scanCredits ?? 0) <= 0)) && (
+                <div className="bg-white rounded-2xl border-2 border-brand-200 shadow-sm p-8 text-center max-w-lg mx-auto mb-6">
+                  <div className="text-5xl mb-4">🔒</div>
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">
+                    {user.plan === 'free' ? "You've used your 3 free scans" : 'No scan credits remaining'}
+                  </h2>
+                  <p className="text-gray-500 text-sm mb-6">
+                    {user.plan === 'free'
+                      ? 'Pick a plan below to keep scanning and protect your baby.'
+                      : 'Top up your credits or go unlimited with Pro.'}
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Link href="/checkout?plan=starter" className="bg-gray-900 text-white font-bold px-6 py-3 rounded-xl hover:bg-gray-800 transition-colors text-sm">
+                      50 Scans — $4.99
+                    </Link>
+                    <Link href="/checkout?plan=pro" className="btn-primary px-6 py-3 rounded-xl font-bold text-sm">
+                      Unlimited — $14.99/mo
+                    </Link>
+                  </div>
+                </div>
+              )}
+
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center max-w-lg mx-auto">
                 <div className="w-20 h-20 bg-brand-50 border-4 border-dashed border-brand-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Scan className="w-10 h-10 text-brand-400" />

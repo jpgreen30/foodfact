@@ -8,12 +8,15 @@ export interface User {
   email: string
   name: string
   role: UserRole
-  plan: 'free' | 'pro' | 'family'
+  plan: 'free' | 'starter' | 'pro'
   onboardingComplete: boolean
   profile?: UserProfile
   createdAt: string
-  scansThisMonth: number
+  scansUsed: number        // lifetime scans used (free: capped at 3)
+  scanCredits: number      // remaining credits (starter: starts at 50)
   totalScans: number
+  /** @deprecated use scansUsed */
+  scansThisMonth?: number
 }
 
 export interface UserProfile {

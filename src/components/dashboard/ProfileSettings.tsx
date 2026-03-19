@@ -138,29 +138,46 @@ export default function ProfileSettings({ user }: Props) {
           </div>
           <div className={`flex items-center justify-between p-4 rounded-xl ${
             user.plan === 'pro' ? 'bg-brand-50 border border-brand-200' :
-            user.plan === 'family' ? 'bg-purple-50 border border-purple-200' :
+            user.plan === 'starter' ? 'bg-blue-50 border border-blue-200' :
             'bg-gray-50 border border-gray-200'
           }`}>
             <div>
               <p className={`font-bold text-lg ${
                 user.plan === 'pro' ? 'text-brand-700' :
-                user.plan === 'family' ? 'text-purple-700' : 'text-gray-700'
+                user.plan === 'starter' ? 'text-blue-700' : 'text-gray-700'
               }`}>
                 {user.plan === 'pro' ? '⭐ Pro Plan' :
-                 user.plan === 'family' ? '👨‍👩‍👧 Family Plan' : '🆓 Free Plan'}
+                 user.plan === 'starter' ? '📦 Starter Plan' : '🆓 Free Plan'}
               </p>
               <p className="text-sm text-gray-500">
-                {user.plan === 'free' ? '5 scans/month · Basic features' :
-                 user.plan === 'pro' ? 'Unlimited scans · All features' :
-                 'Unlimited scans · Family profiles · All features'}
+                {user.plan === 'free'
+                  ? `${user.scansUsed ?? 0}/3 free scans used`
+                  : user.plan === 'starter'
+                  ? `${user.scanCredits ?? 0} scan credits remaining`
+                  : 'Unlimited scans · All features'}
               </p>
             </div>
             {user.plan === 'free' && (
-              <a href="/login?signup=true&plan=pro" className="btn-primary text-sm px-4 py-2">
-                Upgrade
-              </a>
+              <div className="flex flex-col gap-2 ml-4">
+                <a href="/checkout?plan=starter" className="text-sm text-gray-700 border border-gray-300 px-3 py-1.5 rounded-xl hover:bg-gray-50 text-center font-semibold">
+                  50 Scans — $4.99
+                </a>
+                <a href="/checkout?plan=pro" className="btn-primary text-sm px-3 py-1.5 rounded-xl text-center">
+                  Unlimited — $14.99/mo
+                </a>
+              </div>
             )}
-            {user.plan !== 'free' && (
+            {user.plan === 'starter' && (
+              <div className="flex flex-col gap-2 ml-4">
+                <a href="/checkout?plan=starter" className="text-sm text-gray-700 border border-gray-300 px-3 py-1.5 rounded-xl hover:bg-gray-50 text-center font-semibold">
+                  +50 Credits — $4.99
+                </a>
+                <a href="/checkout?plan=pro" className="btn-primary text-sm px-3 py-1.5 rounded-xl text-center">
+                  Go Unlimited
+                </a>
+              </div>
+            )}
+            {user.plan === 'pro' && (
               <button className="text-sm text-gray-500 hover:text-gray-700 border border-gray-200 px-4 py-2 rounded-xl">
                 Manage
               </button>
