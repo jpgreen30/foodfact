@@ -21,6 +21,13 @@ export async function POST(req: NextRequest) {
 
     if (adminError) return NextResponse.json({ error: adminError.message }, { status: 400 })
 
+    // Ensure profile row exists (trigger may not be set up in all environments)
+    await adminClient.from('profiles').upsert({
+      id: adminData.user.id,
+      email: adminData.user.email!,
+      name: name || email.split('@')[0],
+    }, { onConflict: 'id', ignoreDuplicates: true })
+
     // Sign in immediately so session cookies are set
     const supabase = createClient()
     const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
