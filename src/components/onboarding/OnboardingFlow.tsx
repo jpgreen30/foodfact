@@ -81,27 +81,40 @@ export default function OnboardingFlow() {
   const complete = async () => {
     const { createClient } = await import('@/lib/supabase/client')
     const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      // Update profile onboarding flag
-      await supabase.from('profiles').update({ onboarding_complete: true }).eq('id', user.id)
+    const { data: { session } } = await supabase.auth.getSession()
 
-      // Upsert extended onboarding data
-      await supabase.from('user_profiles').upsert({
-        user_id: user.id,
-        mom_status: data.momStatus ?? null,
-        due_date: data.dueDate || null,
-        baby_name: data.babyName || null,
-        baby_birth_date: data.babyBirthDate || null,
-        baby_age_months: data.babyAgeMonths ?? null,
-        diet: data.diet ?? [],
-        concerns: data.concerns ?? [],
-        allergies: data.allergies ?? [],
-        breastfeeding: data.breastfeeding ?? false,
-        organic_preference: data.organicPreference ?? false,
-        notifications_enabled: data.notificationsEnabled ?? true,
-        weekly_report_enabled: data.weeklyReportEnabled ?? true,
-      }, { onConflict: 'user_id' })
+    if (session?.access_token) {
+      const token = session.access_token
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      }
+
+      // Mark onboarding complete via admin-backed API (bypasses RLS)
+      const res = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({
+          onboarding_complete: true,
+          userProfile: {
+            momStatus: data.momStatus,
+            dueDate: data.dueDate,
+            babyName: data.babyName,
+            babyBirthDate: data.babyBirthDate,
+            babyAgeMonths: data.babyAgeMonths,
+            diet: data.diet,
+            concerns: data.concerns,
+            allergies: data.allergies,
+            prenatalConditions: data.prenatalConditions,
+            postnatalConditions: data.postnatalConditions,
+            breastfeeding: data.breastfeeding,
+            organicPreference: data.organicPreference,
+            notificationsEnabled: data.notificationsEnabled,
+            weeklyReportEnabled: data.weeklyReportEnabled,
+          },
+        }),
+      })
+      if (!res.ok) console.error('Failed to save onboarding:', await res.text())
     }
 
     router.push('/dashboard')

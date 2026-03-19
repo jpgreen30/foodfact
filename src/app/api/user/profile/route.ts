@@ -26,10 +26,15 @@ export async function PATCH(req: NextRequest) {
     Object.entries(body).filter(([k]) => allowed.includes(k))
   )
 
+  // Upsert so it works even if the profile row was never created
   const { data, error } = await admin
     .from('profiles')
-    .update(updates)
-    .eq('id', user.id)
+    .upsert({
+      id: user.id,
+      email: user.email ?? '',
+      name: user.user_metadata?.name || user.email?.split('@')[0] || '',
+      ...updates,
+    }, { onConflict: 'id' })
     .select()
     .single()
 
