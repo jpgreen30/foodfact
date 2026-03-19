@@ -23,36 +23,41 @@ function LoginForm() {
     setLoading(true)
     setError('')
 
-    const endpoint = mode === 'signup' ? '/api/auth/signup' : '/api/auth/login'
-    const body = mode === 'signup'
-      ? { email, password, name: name || email.split('@')[0] }
-      : { email, password }
+    try {
+      const endpoint = mode === 'signup' ? '/api/auth/signup' : '/api/auth/login'
+      const body = mode === 'signup'
+        ? { email, password, name: name || email.split('@')[0] }
+        : { email, password }
 
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
 
-    const data = await res.json()
+      const data = await res.json()
 
-    if (!res.ok) {
-      setError(data.error || 'Something went wrong. Please try again.')
-      setLoading(false)
-      return
-    }
-
-    setLoading(false)
-    if (mode === 'signup') {
-      // New users go to onboarding
-      router.push('/onboarding')
-    } else {
-      const profile = data.profile
-      if (profile?.onboarding_complete) {
-        router.push('/dashboard')
-      } else {
-        router.push('/onboarding')
+      if (!res.ok) {
+        setError(data.error || 'Something went wrong. Please try again.')
+        setLoading(false)
+        return
       }
+
+      setLoading(false)
+      if (mode === 'signup') {
+        // New users go to onboarding
+        router.push('/onboarding')
+      } else {
+        const profile = data.profile
+        if (profile?.onboarding_complete) {
+          router.push('/dashboard')
+        } else {
+          router.push('/onboarding')
+        }
+      }
+    } catch {
+      setError('Something went wrong. Please try again.')
+      setLoading(false)
     }
   }
 
