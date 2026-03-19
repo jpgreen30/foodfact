@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Shield, ChevronRight, ChevronLeft, Check } from 'lucide-react'
-import { getCurrentUser, saveCurrentUser } from '@/lib/auth'
 import { UserProfile, MomStatus, DietType, Concern } from '@/lib/types'
 
 import StepWelcome from './steps/StepWelcome'
@@ -79,29 +78,30 @@ export default function OnboardingFlow() {
 
   const back = () => setStep(s => Math.max(s - 1, 0))
 
-  const complete = () => {
-    const user = getCurrentUser()
-    if (user) {
-      const profile: UserProfile = {
-        momStatus: data.momStatus,
-        dueDate: data.dueDate,
-        babyName: data.babyName,
-        babyBirthDate: data.babyBirthDate,
-        babyAgeMonths: data.babyAgeMonths,
-        diet: data.diet,
-        concerns: data.concerns,
-        allergies: data.allergies,
-        prenatalConditions: data.prenatalConditions,
-        postnatalConditions: data.postnatalConditions,
-        breastfeeding: data.breastfeeding,
-        organicPreference: data.organicPreference,
-        notificationsEnabled: data.notificationsEnabled,
-        weeklyReportEnabled: data.weeklyReportEnabled,
-      }
-      user.onboardingComplete = true
-      user.profile = profile
-      saveCurrentUser(user)
+  const complete = async () => {
+    const userProfile: UserProfile = {
+      momStatus: data.momStatus,
+      dueDate: data.dueDate,
+      babyName: data.babyName,
+      babyBirthDate: data.babyBirthDate,
+      babyAgeMonths: data.babyAgeMonths,
+      diet: data.diet,
+      concerns: data.concerns,
+      allergies: data.allergies,
+      prenatalConditions: data.prenatalConditions,
+      postnatalConditions: data.postnatalConditions,
+      breastfeeding: data.breastfeeding,
+      organicPreference: data.organicPreference,
+      notificationsEnabled: data.notificationsEnabled,
+      weeklyReportEnabled: data.weeklyReportEnabled,
     }
+
+    await fetch('/api/user/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ onboarding_complete: true, userProfile }),
+    }).catch(() => {})
+
     router.push('/dashboard')
   }
 

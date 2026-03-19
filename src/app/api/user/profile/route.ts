@@ -35,6 +35,26 @@ export async function PATCH(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
 
+  // Save extended user_profiles data when provided
+  if (body.userProfile) {
+    const p = body.userProfile
+    await supabase.from('user_profiles').upsert({
+      user_id: user.id,
+      mom_status: p.momStatus ?? null,
+      due_date: p.dueDate || null,
+      baby_name: p.babyName || null,
+      baby_birth_date: p.babyBirthDate || null,
+      baby_age_months: p.babyAgeMonths ?? null,
+      diet: p.diet ?? [],
+      concerns: p.concerns ?? [],
+      allergies: p.allergies ?? [],
+      breastfeeding: p.breastfeeding ?? false,
+      organic_preference: p.organicPreference ?? false,
+      notifications_enabled: p.notificationsEnabled ?? true,
+      weekly_report_enabled: p.weeklyReportEnabled ?? true,
+    }, { onConflict: 'user_id' })
+  }
+
   // When onboarding completes, update Brevo contact with full profile attributes
   if (body.onboarding_complete === true && body.userProfile) {
     const p = body.userProfile
