@@ -15,7 +15,7 @@ export default function Logo({ height = 36, linked = true, className = '' }: Log
       src="/logo.svg"
       alt="FoodFactScanner"
       height={height}
-      width={Math.round(height * 3.5)}
+      width={Math.round(height * 4.5)}
       priority
       className={className}
     />
