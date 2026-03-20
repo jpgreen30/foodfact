@@ -38,10 +38,10 @@ export async function POST(req: NextRequest) {
       name: name || email.split('@')[0],
     }, { onConflict: 'id', ignoreDuplicates: true })
 
-    // Fire-and-forget: subscribe to Brevo + send welcome email
+    // Subscribe to Brevo + send welcome email (awaited so it completes before serverless fn exits)
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
     if (baseUrl) {
-      fetch(`${baseUrl}/api/email/subscribe`, {
+      await fetch(`${baseUrl}/api/email/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, name, plan: 'free', sendWelcome: true }),
