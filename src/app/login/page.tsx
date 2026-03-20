@@ -216,7 +216,7 @@ function LoginForm() {
 
           {mode === 'login' && (
             <p className="text-center text-sm text-gray-500 mt-4">
-              <a href="#" className="text-brand-600 hover:underline">Forgot password?</a>
+              <a href="/forgot-password" className="text-brand-600 hover:underline">Forgot password?</a>
             </p>
           )}
 
