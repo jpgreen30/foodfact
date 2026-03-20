@@ -87,6 +87,7 @@ export interface BrevoContactAttributes {
   BABY_AGE_MONTHS?: number
   PLAN?: string
   BREASTFEEDING?: boolean
+  SIGNUP_DATE?: string  // YYYY-MM-DD, used by cron email sequence
 }
 
 export async function subscribeContact(
@@ -404,4 +405,226 @@ ${affiliateProductsHtml(saferProducts)}
 </div>
 `
   return emailWrapper('🚨 Food Safety Recall Alert', body)
+}
+
+// ─── Day 2 nurture email ──────────────────────────────────────────────────────
+
+export function buildDay2NurtureEmail(name: string, momStatus?: string): string {
+  const products = getRecommendedProducts(['heavy-metals'], momStatus ?? 'other').slice(0, 3)
+
+  const body = `
+<h2 style="margin:0 0 16px;color:#1e293b;font-size:22px;font-weight:800;">Hi ${name}, did you know these 3 ingredients could be harming your baby?</h2>
+<p style="margin:0 0 24px;color:#475569;font-size:15px;line-height:1.6;">
+  Most parents assume "baby food" means "safe food." Unfortunately, that's not always true.
+  Independent lab testing has found alarming levels of these toxic ingredients in popular baby food brands:
+</p>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px;border-collapse:collapse;">
+  <tr>
+    <td width="33%" style="padding:8px;vertical-align:top;">
+      <div style="background:#fef2f2;border:2px solid #fecaca;border-radius:12px;padding:20px;text-align:center;">
+        <p style="margin:0 0 8px;font-size:28px;">☠️</p>
+        <h3 style="margin:0 0 8px;color:#dc2626;font-size:16px;font-weight:800;">Arsenic</h3>
+        <p style="margin:0;color:#475569;font-size:13px;line-height:1.5;">Found in rice-based cereals and snacks. Linked to developmental delays, learning disabilities, and immune system damage in infants.</p>
+      </div>
+    </td>
+    <td width="33%" style="padding:8px;vertical-align:top;">
+      <div style="background:#fff7ed;border:2px solid #fed7aa;border-radius:12px;padding:20px;text-align:center;">
+        <p style="margin:0 0 8px;font-size:28px;">🧪</p>
+        <h3 style="margin:0 0 8px;color:#ea580c;font-size:16px;font-weight:800;">BPA</h3>
+        <p style="margin:0;color:#475569;font-size:13px;line-height:1.5;">Leaches from plastic packaging and can linings. Acts as an endocrine disruptor — interfering with hormone development in babies and toddlers.</p>
+      </div>
+    </td>
+    <td width="33%" style="padding:8px;vertical-align:top;">
+      <div style="background:#fdf4ff;border:2px solid #e9d5ff;border-radius:12px;padding:20px;text-align:center;">
+        <p style="margin:0 0 8px;font-size:28px;">🎨</p>
+        <h3 style="margin:0 0 8px;color:#9333ea;font-size:16px;font-weight:800;">Artificial Dyes</h3>
+        <p style="margin:0;color:#475569;font-size:13px;line-height:1.5;">Red 40, Yellow 5 &amp; 6 are linked to hyperactivity and behavioral issues in children. Banned in several European countries — still common in US baby snacks.</p>
+      </div>
+    </td>
+  </tr>
+</table>
+
+<div style="background:#f0fdf4;border-left:4px solid #22c55e;border-radius:0 12px 12px 0;padding:20px;margin:0 0 28px;">
+  <h3 style="margin:0 0 8px;color:#16a34a;font-size:15px;font-weight:700;">🔬 What the research says</h3>
+  <p style="margin:0;color:#475569;font-size:14px;line-height:1.6;">
+    A 2021 Congressional investigation found that <strong>95% of baby foods tested contained toxic heavy metals</strong>, including arsenic, lead, cadmium, and mercury. Many major brands — including ones you likely trust — were named in the report.
+  </p>
+</div>
+
+<p style="margin:0 0 24px;color:#475569;font-size:15px;line-height:1.6;">
+  The good news? You can check <strong>every product before you feed it to your baby</strong> — in under 10 seconds. FoodFactScanner instantly flags these dangerous ingredients so you know exactly what's in your baby's food.
+</p>
+
+<div style="text-align:center;margin:0 0 36px;">
+  <a href="${appUrl}/dashboard" style="display:inline-block;background:#22c55e;color:#fff;font-size:17px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:12px;letter-spacing:-0.3px;">🛡️ Scan Your Baby's Food Now →</a>
+</div>
+
+<h3 style="margin:0 0 16px;color:#1e293b;font-size:16px;font-weight:700;">🛡️ Parents Who Scanned Also Bought</h3>
+${affiliateProductsHtml(products)}
+`
+  return emailWrapper('Did you know these 3 ingredients could be harming your baby?', body)
+}
+
+// ─── Day 5 upsell email ───────────────────────────────────────────────────────
+
+export function buildDay5UpsellEmail(name: string, plan: string): string {
+  const body = `
+<h2 style="margin:0 0 16px;color:#1e293b;font-size:22px;font-weight:800;">Hi ${name}, your free scans are almost up 🚨</h2>
+<p style="margin:0 0 24px;color:#475569;font-size:15px;line-height:1.6;">
+  Don't leave your baby unprotected. Over <strong>1,247 moms upgraded this week</strong> — here's why:
+</p>
+
+<div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-radius:12px;padding:20px;margin:0 0 28px;text-align:center;">
+  <p style="margin:0;font-size:32px;">💬</p>
+  <p style="margin:8px 0 0;color:#1e293b;font-size:15px;font-style:italic;line-height:1.6;">
+    "I upgraded to Pro on day 3. Within a week I got a recall alert for a snack I had already bought. FoodFactScanner literally saved my baby."
+  </p>
+  <p style="margin:12px 0 0;color:#16a34a;font-size:13px;font-weight:700;">— Jessica M., mom of 2, upgraded last week</p>
+</div>
+
+<h3 style="margin:0 0 16px;color:#1e293b;font-size:16px;font-weight:700;">Compare Plans</h3>
+<table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px;border-collapse:collapse;border-radius:12px;overflow:hidden;">
+  <tr style="background:#1e293b;">
+    <th style="padding:14px 16px;text-align:left;color:#94a3b8;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Feature</th>
+    <th style="padding:14px 16px;text-align:center;color:#94a3b8;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Free</th>
+    <th style="padding:14px 16px;text-align:center;color:#fbbf24;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Starter</th>
+    <th style="padding:14px 16px;text-align:center;color:#4ade80;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Pro ⭐</th>
+  </tr>
+  <tr style="background:#ffffff;">
+    <td style="padding:14px 16px;font-size:14px;color:#1e293b;font-weight:600;border-bottom:1px solid #f1f5f9;">Price</td>
+    <td style="padding:14px 16px;text-align:center;font-size:14px;color:#64748b;border-bottom:1px solid #f1f5f9;">Free</td>
+    <td style="padding:14px 16px;text-align:center;font-size:14px;color:#ea580c;font-weight:700;border-bottom:1px solid #f1f5f9;">$4.99</td>
+    <td style="padding:14px 16px;text-align:center;font-size:14px;color:#16a34a;font-weight:700;border-bottom:1px solid #f1f5f9;">$14.99/mo</td>
+  </tr>
+  <tr style="background:#f8fafc;">
+    <td style="padding:14px 16px;font-size:14px;color:#1e293b;font-weight:600;border-bottom:1px solid #f1f5f9;">Scans</td>
+    <td style="padding:14px 16px;text-align:center;font-size:14px;color:#64748b;border-bottom:1px solid #f1f5f9;">3 scans</td>
+    <td style="padding:14px 16px;text-align:center;font-size:14px;color:#1e293b;font-weight:600;border-bottom:1px solid #f1f5f9;">50 scans</td>
+    <td style="padding:14px 16px;text-align:center;font-size:14px;color:#1e293b;font-weight:700;border-bottom:1px solid #f1f5f9;">Unlimited</td>
+  </tr>
+  <tr style="background:#ffffff;">
+    <td style="padding:14px 16px;font-size:14px;color:#1e293b;font-weight:600;border-bottom:1px solid #f1f5f9;">Email Reports</td>
+    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✗</td>
+    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✓</td>
+    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✓</td>
+  </tr>
+  <tr style="background:#f8fafc;">
+    <td style="padding:14px 16px;font-size:14px;color:#1e293b;font-weight:600;border-bottom:1px solid #f1f5f9;">Chemical Alerts</td>
+    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✗</td>
+    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✓</td>
+    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✓</td>
+  </tr>
+  <tr style="background:#ffffff;">
+    <td style="padding:14px 16px;font-size:14px;color:#1e293b;font-weight:600;border-bottom:1px solid #f1f5f9;">Weekly Newsletter</td>
+    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✗</td>
+    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✗</td>
+    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✓</td>
+  </tr>
+  <tr style="background:#f8fafc;">
+    <td style="padding:14px 16px;font-size:14px;color:#1e293b;font-weight:600;border-bottom:1px solid #f1f5f9;">Priority Alerts</td>
+    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✗</td>
+    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✗</td>
+    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✓</td>
+  </tr>
+  <tr style="background:#ffffff;">
+    <td style="padding:14px 16px;font-size:14px;color:#1e293b;font-weight:600;">Full Scan History</td>
+    <td style="padding:14px 16px;text-align:center;font-size:20px;">✗</td>
+    <td style="padding:14px 16px;text-align:center;font-size:20px;">✗</td>
+    <td style="padding:14px 16px;text-align:center;font-size:20px;">✓</td>
+  </tr>
+</table>
+
+<div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:16px;margin:0 0 24px;text-align:center;">
+  <p style="margin:0;color:#16a34a;font-size:14px;font-weight:700;">⏰ Limited time: Pro plan includes free weekly safety newsletter — a $9/mo value, included free.</p>
+</div>
+
+<div style="text-align:center;margin:0 0 16px;">
+  <a href="${appUrl}/checkout?plan=pro" style="display:inline-block;background:#22c55e;color:#fff;font-size:17px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:12px;letter-spacing:-0.3px;">Upgrade to Pro — $14.99/mo →</a>
+</div>
+<div style="text-align:center;margin:0 0 32px;">
+  <a href="${appUrl}/checkout?plan=starter" style="display:inline-block;background:#f1f5f9;color:#475569;font-size:14px;font-weight:600;text-decoration:none;padding:12px 28px;border-radius:10px;border:1px solid #e2e8f0;">Get 50 Scans — $4.99</a>
+</div>
+`
+  return emailWrapper('Your free scans are almost up — don\'t leave your baby unprotected', body)
+}
+
+// ─── Day 7 re-engage email ────────────────────────────────────────────────────
+
+export function buildDay7ReengageEmail(name: string, momStatus?: string): string {
+  const products = getRecommendedProducts(['heavy-metals'], momStatus ?? 'other').slice(0, 3)
+
+  const body = `
+<h2 style="margin:0 0 16px;color:#1e293b;font-size:22px;font-weight:800;">Hi ${name} — this is your last chance 💚</h2>
+
+<div style="background:#fef2f2;border-left:4px solid #ef4444;border-radius:0 12px 12px 0;padding:20px;margin:0 0 28px;">
+  <h3 style="margin:0 0 10px;color:#dc2626;font-size:15px;font-weight:700;">A story from one of our moms</h3>
+  <p style="margin:0;color:#475569;font-size:14px;line-height:1.7;font-style:italic;">
+    "My daughter was 9 months old. I'd been feeding her the same organic rice puffs for weeks — I trusted the brand. One afternoon I scanned the label in FoodFactScanner, just out of curiosity. The result came back with a HIGH arsenic warning. I was devastated — and then furious. I'd had no idea. We switched immediately. Her next pediatrician visit showed improved iron levels.
+    I still think about those weeks before I scanned."
+  </p>
+  <p style="margin:12px 0 0;color:#dc2626;font-size:13px;font-weight:700;">— Sarah K., mom of 1, FoodFactScanner Pro member</p>
+</div>
+
+<div style="background:#1e293b;border-radius:12px;padding:24px;margin:0 0 28px;text-align:center;">
+  <p style="margin:0 0 8px;color:#94a3b8;font-size:13px;text-transform:uppercase;letter-spacing:.08em;font-weight:600;">Think about this</p>
+  <p style="margin:0;color:#f8fafc;font-size:18px;font-weight:700;line-height:1.5;">
+    You signed up 7 days ago.<br>
+    <span style="color:#fbbf24;">Your baby has eaten dozens of meals since then.</span><br>
+    Were they safe?
+  </p>
+</div>
+
+<p style="margin:0 0 24px;color:#475569;font-size:15px;line-height:1.6;">
+  For less than the price of a coffee — <strong>$14.99/mo</strong> — you get unlimited scans, instant recall alerts, and weekly safety reports. That's <strong>50 cents a day</strong> to know exactly what you're feeding your baby.
+</p>
+
+<div style="background:#f0fdf4;border-radius:12px;padding:20px;margin:0 0 28px;">
+  <h3 style="margin:0 0 12px;color:#16a34a;font-size:15px;font-weight:700;">✅ What Pro members get</h3>
+  <p style="margin:0 0 8px;color:#1e293b;font-size:14px;line-height:1.6;">• <strong>Unlimited scans</strong> — check every product, every time</p>
+  <p style="margin:0 0 8px;color:#1e293b;font-size:14px;line-height:1.6;">• <strong>Priority recall alerts</strong> — know before the news does</p>
+  <p style="margin:0 0 8px;color:#1e293b;font-size:14px;line-height:1.6;">• <strong>Weekly safety newsletter</strong> — curated tips for your baby's stage</p>
+  <p style="margin:0;color:#1e293b;font-size:14px;line-height:1.6;">• <strong>Full scan history</strong> — track every product you've checked</p>
+</div>
+
+<div style="text-align:center;margin:0 0 16px;">
+  <a href="${appUrl}/checkout?plan=pro" style="display:inline-block;background:#22c55e;color:#fff;font-size:17px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:12px;letter-spacing:-0.3px;">Protect My Baby — Upgrade to Pro →</a>
+</div>
+<p style="text-align:center;margin:0 0 36px;color:#94a3b8;font-size:13px;">Less than a coffee a day. Cancel anytime.</p>
+
+<h3 style="margin:0 0 16px;color:#1e293b;font-size:16px;font-weight:700;">🛡️ Parents Who Scanned Also Bought</h3>
+${affiliateProductsHtml(products)}
+`
+  return emailWrapper('Last chance: protect your baby for less than a coffee', body)
+}
+
+// ─── Automation email dispatcher ─────────────────────────────────────────────
+
+export async function sendAutomationEmail(
+  email: string,
+  name: string,
+  day: number,
+  profile?: { plan?: string; momStatus?: string }
+): Promise<void> {
+  let subject: string
+  let html: string
+
+  switch (day) {
+    case 2:
+      subject = 'Did you know these 3 ingredients could be harming your baby?'
+      html = buildDay2NurtureEmail(name, profile?.momStatus)
+      break
+    case 5:
+      subject = "Your free scans are almost up — don't leave your baby unprotected"
+      html = buildDay5UpsellEmail(name, profile?.plan ?? 'free')
+      break
+    case 7:
+      subject = 'Last chance: protect your baby for less than a coffee'
+      html = buildDay7ReengageEmail(name, profile?.momStatus)
+      break
+    default:
+      return
+  }
+
+  await sendTransactionalEmail(email, name, subject, html)
 }

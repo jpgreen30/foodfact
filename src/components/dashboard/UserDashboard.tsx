@@ -57,6 +57,7 @@ export default function UserDashboard({ user }: Props) {
   const [scanLoading, setScanLoading] = useState(false)
   const [scanResult, setScanResult] = useState<ScanResult | null>(null)
   const [scanError, setScanError] = useState<string | null>(null)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [nameQuery, setNameQuery] = useState('')
 
   // Local credit tracking — decremented immediately after each scan so the
@@ -104,6 +105,10 @@ export default function UserDashboard({ user }: Props) {
       if (user.plan === 'starter') setLocalCredits(prev => Math.max(0, prev - 1))
 
       setScanResult(productData.product)
+      // Show upgrade modal for free users who see a danger result
+      if (user.plan === 'free' && productData.product?.overallScore === 'danger') {
+        setTimeout(() => setShowUpgradeModal(true), 1200)
+      }
       setScanMode(null)
     } catch {
       setScanError('Network error. Please check your connection and try again.')
@@ -156,6 +161,44 @@ export default function UserDashboard({ user }: Props) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
+      {/* Danger scan upgrade modal */}
+      {showUpgradeModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowUpgradeModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6" onClick={e => e.stopPropagation()}>
+            <div className="text-center mb-4">
+              <div className="text-4xl mb-2">🚨</div>
+              <h2 className="text-xl font-black text-gray-900 mb-1">Dangerous Product Found</h2>
+              <p className="text-sm text-gray-500">This product contains high-risk chemicals. Protect your baby with unlimited scanning.</p>
+            </div>
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
+              <p className="text-xs text-red-700 font-semibold text-center">You have {Math.max(0, 3 - localScansUsed)} free scan{Math.max(0, 3 - localScansUsed) !== 1 ? 's' : ''} left. After that, you won&apos;t be able to check your baby&apos;s food.</p>
+            </div>
+            <div className="space-y-2">
+              <Link
+                href="/checkout?plan=pro"
+                className="block w-full bg-green-600 hover:bg-green-700 text-white font-bold text-center py-3 rounded-xl transition-colors"
+                onClick={() => setShowUpgradeModal(false)}
+              >
+                Unlock Unlimited Scans — $14.99/mo
+              </Link>
+              <Link
+                href="/checkout?plan=starter"
+                className="block w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-center py-2.5 rounded-xl transition-colors text-sm"
+                onClick={() => setShowUpgradeModal(false)}
+              >
+                50 Scans — $4.99 one-time
+              </Link>
+              <button
+                onClick={() => setShowUpgradeModal(false)}
+                className="block w-full text-gray-400 text-xs py-2 hover:text-gray-600 transition-colors"
+              >
+                Maybe later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Sidebar - Desktop */}
       <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-gray-100 shadow-sm fixed top-0 left-0 h-full z-40">
         <div className="p-5 border-b border-gray-100">
@@ -454,7 +497,20 @@ export default function UserDashboard({ user }: Props) {
                 />
               )}
 
-              <h1 className="text-2xl font-black text-gray-900 mb-6">Scan Baby Food</h1>
+              <div className="flex items-center justify-between mb-6">
+                <h1 className="text-2xl font-black text-gray-900">Scan Baby Food</h1>
+                {user.plan !== 'pro' && (
+                  <div className={`text-xs font-bold px-3 py-1.5 rounded-full ${
+                    isAtScanLimit ? 'bg-red-100 text-red-700' :
+                    (user.plan === 'free' && localScansUsed >= 2) ? 'bg-orange-100 text-orange-700' :
+                    'bg-gray-100 text-gray-600'
+                  }`}>
+                    {user.plan === 'free'
+                      ? `${localScansUsed}/3 free scans used`
+                      : `${localCredits} credits left`}
+                  </div>
+                )}
+              </div>
 
               {/* Scan limit gate */}
               {isAtScanLimit && !scanResult && (
@@ -561,15 +617,52 @@ export default function UserDashboard({ user }: Props) {
                     </div>
                   )}
 
-                  {/* Ingredients */}
-                  {scanResult.ingredients.length > 0 && (
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                      <h3 className="font-bold text-gray-900 mb-3">Ingredients</h3>
-                      <p className="text-sm text-gray-600 leading-relaxed">
-                        {scanResult.ingredients.join(', ')}
-                      </p>
-                    </div>
-                  )}
+                  {/* Ingredients — detailed flagged view */}
+                  {scanResult.ingredients.length > 0 && (() => {
+                    const detectedNames = scanResult.chemicals.map(c => c.name.toLowerCase())
+                    const warnIngredients = ['high fructose corn syrup', 'corn syrup', 'artificial flavor', 'artificial color', 'red 40', 'yellow 5', 'yellow 6', 'blue 1', 'titanium dioxide', 'sodium nitrate', 'sodium nitrite', 'bha', 'bht', 'tbhq', 'carrageenan', 'msg', 'aspartame', 'sucralose', 'saccharin', 'acesulfame', 'potassium bromate', 'brominated vegetable oil']
+                    const flagged = scanResult.ingredients.filter(i =>
+                      detectedNames.some(d => i.toLowerCase().includes(d) || d.includes(i.toLowerCase().substring(0, 6)))
+                    )
+                    const cautionList = scanResult.ingredients.filter(i =>
+                      !flagged.includes(i) && warnIngredients.some(w => i.toLowerCase().includes(w))
+                    )
+                    const cleanCount = scanResult.ingredients.length - flagged.length - cautionList.length
+                    return (
+                      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="font-bold text-gray-900">Ingredients</h3>
+                          <div className="flex gap-2 text-xs">
+                            {flagged.length > 0 && <span className="bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded-full">{flagged.length} flagged</span>}
+                            {cautionList.length > 0 && <span className="bg-yellow-100 text-yellow-700 font-bold px-2 py-0.5 rounded-full">{cautionList.length} caution</span>}
+                            {cleanCount > 0 && <span className="bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">{cleanCount} clean</span>}
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {scanResult.ingredients.map((ingredient, i) => {
+                            const isFlag = flagged.includes(ingredient)
+                            const isCaution = cautionList.includes(ingredient)
+                            return (
+                              <span
+                                key={i}
+                                className={`inline-block text-xs px-2.5 py-1 rounded-full font-medium border ${
+                                  isFlag ? 'bg-red-50 text-red-800 border-red-300 font-bold' :
+                                  isCaution ? 'bg-yellow-50 text-yellow-800 border-yellow-300' :
+                                  'bg-gray-50 text-gray-600 border-gray-200'
+                                }`}
+                                title={isFlag ? 'Flagged: detected in scan' : isCaution ? 'Caution: known concern' : 'Clean ingredient'}
+                              >
+                                {isFlag ? '⚠️ ' : isCaution ? '⚡ ' : ''}{ingredient}
+                              </span>
+                            )
+                          })}
+                        </div>
+                        {(flagged.length > 0 || cautionList.length > 0) && (
+                          <p className="text-xs text-gray-400 mt-3">⚠️ flagged by scan · ⚡ known concern · no icon = clean</p>
+                        )}
+                      </div>
+                    )
+                  })()}
 
                   {/* Safer Alternatives upsell — caution/danger only */}
                   {(scanResult.overallScore === 'caution' || scanResult.overallScore === 'danger') && (() => {
@@ -628,6 +721,20 @@ export default function UserDashboard({ user }: Props) {
                   >
                     Scan Another Product
                   </button>
+
+                  {/* Post-scan upgrade nudge — free users only */}
+                  {user.plan === 'free' && !isAtScanLimit && (
+                    <div className="bg-gradient-to-r from-brand-50 to-green-50 border border-brand-200 rounded-2xl p-4 flex items-center gap-3">
+                      <div className="text-2xl flex-shrink-0">🔓</div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-gray-900 text-sm">Unlock unlimited scans</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{3 - localScansUsed} free scan{3 - localScansUsed !== 1 ? 's' : ''} remaining — upgrade for $14.99/mo</p>
+                      </div>
+                      <Link href="/checkout?plan=pro" className="flex-shrink-0 bg-brand-600 text-white text-xs font-bold px-3 py-2 rounded-xl hover:bg-brand-700 transition-colors whitespace-nowrap">
+                        Upgrade
+                      </Link>
+                    </div>
+                  )}
                 </div>
               )}
 
