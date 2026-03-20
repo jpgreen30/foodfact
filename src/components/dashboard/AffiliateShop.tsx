@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Star, ExternalLink, ShoppingCart } from 'lucide-react'
 import { AffiliateProduct, UserProfile, ProductCategory } from '@/lib/types'
 import { getRecommendedProducts } from '@/lib/affiliate-products'
+import { proxyImg } from '@/lib/utils'
 
 interface Props {
   products: AffiliateProduct[]
@@ -75,7 +76,7 @@ export default function AffiliateShop({ products, profile }: Props) {
                 className="flex items-center gap-3 bg-white rounded-xl p-3 hover:shadow-md transition-all group border border-brand-100"
               >
                 <img
-                  src={product.imageUrl}
+                  src={proxyImg(product.imageUrl)}
                   alt={product.title}
                   className="w-12 h-12 object-contain rounded-lg bg-gray-50 flex-shrink-0"
                   onError={(e) => { e.currentTarget.src = '' }}
@@ -126,7 +127,7 @@ export default function AffiliateShop({ products, profile }: Props) {
             {/* Header */}
             <div className="bg-gradient-to-br from-gray-50 to-gray-100 h-36 relative overflow-hidden">
               <img
-                src={product.imageUrl}
+                src={proxyImg(product.imageUrl)}
                 alt={product.title}
                 className="w-full h-full object-contain p-4"
                 onError={(e) => {

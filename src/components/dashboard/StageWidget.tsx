@@ -2,6 +2,7 @@
 
 import { UserProfile } from '@/lib/types'
 import { getRecommendedProducts } from '@/lib/affiliate-products'
+import { proxyImg } from '@/lib/utils'
 import { getPregnancyWeek, getBabyAgeLabel } from '@/lib/brevo'
 import { ExternalLink, Star } from 'lucide-react'
 
@@ -154,7 +155,7 @@ export default function StageWidget({ userProfile }: StageWidgetProps) {
               >
                 <div className="flex items-start gap-2">
                   <img
-                    src={product.imageUrl}
+                    src={proxyImg(product.imageUrl)}
                     alt={product.title}
                     className="w-10 h-10 rounded-lg object-cover shrink-0"
                   />

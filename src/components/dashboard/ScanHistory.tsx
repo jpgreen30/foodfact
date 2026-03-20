@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { AlertTriangle, CheckCircle, Clock, ChevronDown, ChevronUp, ExternalLink, Scale, Star } from 'lucide-react'
 import { ScanResult, UserProfile } from '@/lib/types'
 import { AFFILIATE_PRODUCTS, getRecommendedProducts } from '@/lib/affiliate-products'
+import { proxyImg } from '@/lib/utils'
 
 interface Props {
   scans: ScanResult[]
@@ -231,7 +232,7 @@ export default function ScanHistory({ scans, userProfile, userName = '', userEma
                             className="bg-white border border-gray-200 rounded-xl p-3 hover:border-green-300 hover:shadow-sm transition-all group"
                           >
                             <img
-                              src={product.imageUrl}
+                              src={proxyImg(product.imageUrl)}
                               alt={product.title}
                               className="w-full h-20 object-cover rounded-lg mb-2"
                             />

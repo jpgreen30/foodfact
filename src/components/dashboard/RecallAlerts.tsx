@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { AlertTriangle, ChevronDown, ChevronUp, ExternalLink, Scale, X } from 'lucide-react'
 import { AFFILIATE_PRODUCTS } from '@/lib/affiliate-products'
+import { proxyImg } from '@/lib/utils'
 
 interface RecallAlert {
   id: string
@@ -251,7 +252,7 @@ export default function RecallAlerts({ userName = '', userEmail = '', onShopClic
                         rel="noopener noreferrer"
                         className="bg-gray-50 rounded-xl p-2 hover:bg-gray-100 transition-colors"
                       >
-                        <img src={p.imageUrl} alt={p.title} className="w-full h-16 object-cover rounded-lg mb-1" />
+                        <img src={proxyImg(p.imageUrl)} alt={p.title} className="w-full h-16 object-cover rounded-lg mb-1" />
                         <p className="text-xs font-semibold text-gray-700 line-clamp-1">{p.title}</p>
                         <p className="text-xs font-bold text-green-600">{p.price}</p>
                         <p className="text-xs text-amber-600 flex items-center gap-1 mt-0.5">

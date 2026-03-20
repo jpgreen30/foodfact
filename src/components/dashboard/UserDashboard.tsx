@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { proxyImg } from '@/lib/utils'
 import {
   Scan, BarChart3, ShoppingBag, LogOut, User,
   AlertTriangle, CheckCircle, Clock,
@@ -414,7 +415,7 @@ export default function UserDashboard({ user }: Props) {
                         className="flex items-center gap-3 p-3 bg-gray-50 hover:bg-brand-50 rounded-xl transition-colors group"
                       >
                         <img
-                          src={product.imageUrl}
+                          src={proxyImg(product.imageUrl)}
                           alt={product.title}
                           className="w-10 h-10 object-contain rounded-lg bg-gray-50 flex-shrink-0"
                           onError={(e) => { e.currentTarget.src = '' }}
@@ -692,7 +693,7 @@ export default function UserDashboard({ user }: Props) {
                             >
                               <div className="bg-gray-50 rounded-xl p-2 mb-1.5 h-20 flex items-center justify-center">
                                 <img
-                                  src={product.imageUrl}
+                                  src={proxyImg(product.imageUrl)}
                                   alt={product.title}
                                   className="max-h-full object-contain"
                                   onError={(e) => { e.currentTarget.style.display = 'none' }}
@@ -878,7 +879,7 @@ export default function UserDashboard({ user }: Props) {
                       className="bg-white rounded-xl p-3 border border-amber-100 hover:border-amber-300 hover:shadow-sm transition-all"
                     >
                       <img
-                        src={product.imageUrl}
+                        src={proxyImg(product.imageUrl)}
                         alt={product.title}
                         className="w-full h-28 object-contain rounded-lg mb-2 bg-white"
                         onError={(e) => { e.currentTarget.style.display = 'none' }}
