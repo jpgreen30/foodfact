@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import {
-  Shield, Users, BarChart3, ShoppingBag, Settings, LogOut,
+  Users, BarChart3, ShoppingBag, Settings, LogOut,
   TrendingUp, DollarSign, Scan, AlertTriangle, UserCheck,
   Menu, X, Home, Bell, Database, Star, Scale, Copy, CheckCheck,
   ExternalLink, RefreshCw
 } from 'lucide-react'
+import Logo from '@/components/Logo'
 import { logout } from '@/lib/auth'
 import { ADMIN_STATS, MOCK_USER_LIST } from '@/lib/mock-data'
 import { AFFILIATE_PRODUCTS } from '@/lib/affiliate-products'
@@ -52,15 +53,10 @@ export default function AdminDashboard() {
       {/* Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 bg-slate-900 fixed top-0 left-0 h-full z-40">
         <div className="p-5 border-b border-slate-700">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-9 h-9 bg-brand-500 rounded-xl flex items-center justify-center">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <span className="font-bold text-white text-sm block">FoodFactScanner</span>
-              <span className="text-xs text-slate-400">Admin Console</span>
-            </div>
-          </Link>
+          <div className="flex flex-col gap-1">
+            <Logo height={28} />
+            <span className="text-xs text-slate-400">Admin Console</span>
+          </div>
         </div>
 
         <nav className="flex-1 p-3 space-y-1">
@@ -102,12 +98,8 @@ export default function AdminDashboard() {
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-slate-900 border-b border-slate-700">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center">
-              <Shield className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <span className="font-bold text-white text-sm">Admin Console</span>
-            </div>
+            <Logo height={24} />
+            <span className="text-xs text-slate-400">Admin Console</span>
           </div>
           <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2 rounded-lg text-slate-400 hover:text-white">
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Shield } from 'lucide-react'
+import Logo from '@/components/Logo'
 
 export default function Footer() {
   return (
@@ -8,13 +8,8 @@ export default function Footer() {
         <div className="grid md:grid-cols-4 gap-8 mb-10">
           {/* Brand */}
           <div className="md:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center">
-                <Shield className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-bold text-white text-xl">
-                FoodFact<span className="text-brand-400">Scanner</span>
-              </span>
+            <div className="mb-4">
+              <Logo height={36} />
             </div>
             <p className="text-sm leading-relaxed mb-4">
               AI-powered baby food safety scanner. Protecting 24,000+ babies from toxic chemicals in food.

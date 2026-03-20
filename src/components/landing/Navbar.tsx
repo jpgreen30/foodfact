@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Shield, Menu, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
+import Logo from '@/components/Logo'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -21,14 +22,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center shadow-lg shadow-brand-600/30">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold text-xl text-gray-900">
-              FoodFact<span className="text-brand-600">Scanner</span>
-            </span>
-          </Link>
+          <Logo height={38} />
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">

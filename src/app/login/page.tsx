@@ -2,9 +2,9 @@
 
 import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
-import { Shield, Eye, EyeOff, Scan, CheckCircle, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, Scan, CheckCircle, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import Logo from '@/components/Logo'
 
 function LoginForm() {
   const router = useRouter()
@@ -81,14 +81,9 @@ function LoginForm() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-2">
-            <div className="w-10 h-10 bg-brand-500 rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/30">
-              <Shield className="w-6 h-6 text-white" />
-            </div>
-            <span className="font-bold text-2xl text-white">
-              FoodFact<span className="text-brand-400">Scanner</span>
-            </span>
-          </Link>
+          <div className="flex justify-center mb-2">
+            <Logo height={44} />
+          </div>
           <p className="text-gray-400 text-sm mt-2">
             {mode === 'signup' ? 'Create your free account' : 'Welcome back, parent!'}
           </p>

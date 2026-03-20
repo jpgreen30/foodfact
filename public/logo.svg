@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 120" fill="none">
+  <defs>
+    <!-- Shield gradient: bright lime top-left → dark forest green bottom-right -->
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#8DC63F"/>
+      <stop offset="45%"  stop-color="#3A9E3A"/>
+      <stop offset="100%" stop-color="#1A5C1A"/>
+    </linearGradient>
+    <!-- Inner lens circle gradient -->
+    <linearGradient id="lensGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#5DBF5D"/>
+      <stop offset="100%" stop-color="#1A6B1A"/>
+    </linearGradient>
+    <!-- Drop shadow filter -->
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000040"/>
+    </filter>
+  </defs>
+
+  <!-- ── Shield body ── -->
+  <!-- Classic rounded shield / kite shape -->
+  <path d="M10 12 Q10 8 14 8 L96 8 Q100 8 100 12 L100 62 Q100 92 55 112 Q10 92 10 62 Z"
+        fill="url(#shieldGrad)" filter="url(#shadow)"/>
+  <!-- Shield border -->
+  <path d="M10 12 Q10 8 14 8 L96 8 Q100 8 100 12 L100 62 Q100 92 55 112 Q10 92 10 62 Z"
+        fill="none" stroke="#1A5C1A" stroke-width="3.5"/>
+
+  <!-- ── Magnifying-glass: white outer ring ── -->
+  <circle cx="58" cy="54" r="30" fill="white" opacity="0.95"/>
+
+  <!-- ── Magnifying-glass: green lens ── -->
+  <circle cx="58" cy="54" r="23" fill="url(#lensGrad)"/>
+
+  <!-- ── Checkmark inside lens ── -->
+  <polyline points="46,54 54,63 70,44"
+            stroke="#C8E62B" stroke-width="5.5"
+            stroke-linecap="round" stroke-linejoin="round"
+            fill="none"/>
+
+  <!-- ── Magnifying-glass handle ── -->
+  <line x1="78" y1="74" x2="99" y2="102"
+        stroke="#1A5C1A" stroke-width="10" stroke-linecap="round"/>
+  <!-- Handle highlight -->
+  <line x1="78" y1="74" x2="99" y2="102"
+        stroke="#2D8B2D" stroke-width="5" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- ── Wordmark ── -->
+  <text x="118" y="73"
+        font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+        font-size="44" font-weight="800" letter-spacing="-1"
+        fill="#1A5C1A">FoodFactScanner</text>
+</svg>

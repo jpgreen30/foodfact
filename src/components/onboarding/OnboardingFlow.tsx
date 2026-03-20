@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Shield, ChevronRight, ChevronLeft, Check } from 'lucide-react'
+import { ChevronRight, ChevronLeft, Check } from 'lucide-react'
+import Logo from '@/components/Logo'
 import { MomStatus, DietType, Concern } from '@/lib/types'
 
 import StepWelcome from './steps/StepWelcome'
@@ -162,12 +163,7 @@ export default function OnboardingFlow() {
       {/* Header */}
       <div className="bg-white border-b border-gray-100 shadow-sm px-4 py-4">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center">
-              <Shield className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-gray-900">FoodFactScanner</span>
-          </div>
+          <Logo height={32} />
           {step < STEPS.length - 1 && (
             <button
               onClick={complete}
