@@ -224,7 +224,7 @@ function affiliateProductsHtml(products: AffiliateProduct[]): string {
 <td width="33%" style="padding:6px;vertical-align:top;">
   <div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;text-align:center;">
     <div style="position:relative;">
-      <img src="${p.imageUrl}" alt="${p.title}" width="100%" style="height:130px;object-fit:cover;display:block;">
+      <img src="${appUrl}/api/img?url=${encodeURIComponent(p.imageUrl)}" alt="${p.title}" width="100%" style="height:130px;object-fit:cover;display:block;">
       ${p.badge ? `<div style="position:absolute;top:8px;left:8px;background:#16a34a;color:#fff;font-size:9px;font-weight:700;padding:3px 7px;border-radius:20px;letter-spacing:.03em;text-transform:uppercase;">${p.badge}</div>` : ''}
     </div>
     <div style="padding:12px 10px 14px;">
