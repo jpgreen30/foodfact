@@ -74,7 +74,12 @@ export default function AffiliateShop({ products, profile }: Props) {
                 rel="noopener noreferrer sponsored"
                 className="flex items-center gap-3 bg-white rounded-xl p-3 hover:shadow-md transition-all group border border-brand-100"
               >
-                <div className="w-12 h-12 bg-brand-50 rounded-lg flex items-center justify-center text-xl flex-shrink-0">🛒</div>
+                <img
+                  src={product.imageUrl}
+                  alt={product.title}
+                  className="w-12 h-12 object-contain rounded-lg bg-gray-50 flex-shrink-0"
+                  onError={(e) => { e.currentTarget.src = '' }}
+                />
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-gray-800 text-sm truncate group-hover:text-brand-700">
                     {product.title.split(' ').slice(0, 4).join(' ')}...
@@ -119,8 +124,21 @@ export default function AffiliateShop({ products, profile }: Props) {
             }`}
           >
             {/* Header */}
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 text-center relative">
-              <span className="text-5xl">
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 h-44 relative overflow-hidden">
+              <img
+                src={product.imageUrl}
+                alt={product.title}
+                className="w-full h-full object-contain p-4"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none'
+                  const fb = e.currentTarget.nextElementSibling as HTMLElement | null
+                  if (fb) fb.style.display = 'flex'
+                }}
+              />
+              <span
+                style={{ display: 'none' }}
+                className="absolute inset-0 items-center justify-center text-5xl"
+              >
                 {product.category === 'organic-food' ? '🥣' :
                  product.category === 'prenatal-vitamins' ? '💊' :
                  product.category === 'postnatal-vitamins' ? '🤱' :

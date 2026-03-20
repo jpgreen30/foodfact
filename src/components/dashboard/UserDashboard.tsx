@@ -351,9 +351,12 @@ export default function UserDashboard({ user }: Props) {
                         rel="noopener noreferrer sponsored"
                         className="flex items-center gap-3 p-3 bg-gray-50 hover:bg-brand-50 rounded-xl transition-colors group"
                       >
-                        <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center text-lg flex-shrink-0">
-                          🛒
-                        </div>
+                        <img
+                          src={product.imageUrl}
+                          alt={product.title}
+                          className="w-10 h-10 object-contain rounded-lg bg-gray-50 flex-shrink-0"
+                          onError={(e) => { e.currentTarget.src = '' }}
+                        />
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-gray-800 text-sm truncate group-hover:text-brand-700">
                             {product.title.split(' ').slice(0, 5).join(' ')}...
