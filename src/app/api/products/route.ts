@@ -1,14 +1,116 @@
 import { NextRequest, NextResponse } from 'next/server'
+import Anthropic from '@anthropic-ai/sdk'
 import { ScanResult, ChemicalFound } from '@/lib/types'
 
 // ---------------------------------------------------------------------------
-// Chemical risk rules applied against ingredient lists
+// AI-powered analysis via Claude
+// ---------------------------------------------------------------------------
+
+const ANALYSIS_TOOL: Anthropic.Tool = {
+  name: 'report_food_safety',
+  description: 'Report the food safety analysis result for the given product ingredients',
+  input_schema: {
+    type: 'object' as const,
+    properties: {
+      chemicals: {
+        type: 'array',
+        description: 'List of concerning chemicals, additives, or ingredients found',
+        items: {
+          type: 'object',
+          properties: {
+            name: { type: 'string', description: 'Name of the chemical or additive' },
+            level: { type: 'string', enum: ['low', 'medium', 'high'], description: 'Risk level' },
+            description: { type: 'string', description: 'What it is and where it comes from' },
+            healthRisk: { type: 'string', description: 'Specific health risk for pregnant women and young children' },
+            safeLimit: { type: 'string', description: 'Regulatory safe limit if applicable' },
+            detectedAmount: { type: 'string', description: 'Estimated detected amount if applicable' },
+          },
+          required: ['name', 'level', 'description', 'healthRisk'],
+          additionalProperties: false,
+        },
+      },
+      overallScore: {
+        type: 'string',
+        enum: ['safe', 'caution', 'danger'],
+        description: 'Overall safety score: safe (no concerns), caution (medium risks), danger (high risks)',
+      },
+    },
+    required: ['chemicals', 'overallScore'],
+    additionalProperties: false,
+  },
+}
+
+async function analyzeWithAI(
+  productName: string,
+  brand: string,
+  ingredients: string[]
+): Promise<{ chemicals: ChemicalFound[]; score: 'safe' | 'caution' | 'danger' } | null> {
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) return null
+
+  try {
+    const client = new Anthropic({ apiKey })
+
+    const response = await client.messages.create({
+      model: 'claude-opus-4-6',
+      max_tokens: 2048,
+      tools: [ANALYSIS_TOOL],
+      tool_choice: { type: 'tool', name: 'report_food_safety' },
+      messages: [
+        {
+          role: 'user',
+          content: `You are a food safety expert specializing in risks for pregnant women, infants, and toddlers.
+
+Analyze the ingredients of this product and identify ALL concerning chemicals, additives, heavy metals, preservatives, and harmful substances:
+
+Product: "${productName}" by ${brand}
+Ingredients: ${ingredients.join(', ')}
+
+Check specifically for:
+- Heavy metals: arsenic (especially in rice flour/brown rice syrup), lead, cadmium, mercury
+- Artificial food dyes: Red 40, Yellow 5, Yellow 6, Blue 1, Blue 2, Green 3
+- Preservatives: sodium nitrate, sodium nitrite, BHA, BHT, TBHQ
+- Trans fats / partially hydrogenated oils
+- High-fructose corn syrup, corn syrup
+- BPA / bisphenol compounds
+- Carrageenan (gut inflammation risk)
+- Artificial sweeteners: aspartame, sucralose, saccharin, acesulfame-K
+- MSG / monosodium glutamate
+- Titanium dioxide
+- Polysorbate 60, Polysorbate 80
+- Acrylamide (forms in high-heat starchy foods)
+- Any other additives unsafe for babies or pregnant women
+
+Scoring rules:
+- "danger": any high-risk ingredient present (heavy metals at high levels, trans fats, acrylamide)
+- "caution": medium-risk ingredients (food dyes, HFCS, carrageenan, nitrates)
+- "safe": no concerning additives found
+
+If no harmful ingredients are present, return an empty chemicals array and "safe" score.`,
+        },
+      ],
+    })
+
+    const toolUse = response.content.find(
+      (b): b is Anthropic.ToolUseBlock => b.type === 'tool_use'
+    )
+    if (!toolUse) return null
+
+    const input = toolUse.input as { chemicals: ChemicalFound[]; overallScore: 'safe' | 'caution' | 'danger' }
+    return { chemicals: input.chemicals, score: input.overallScore }
+  } catch (err) {
+    console.error('[AI analysis failed]', err)
+    return null
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Rule-based fallback
 // ---------------------------------------------------------------------------
 
 interface RiskRule {
-  /** substrings to match (case-insensitive) in joined ingredient text */
   keywords: string[]
-  chemical: Omit<ChemicalFound, 'name'> & { name: string }
+  chemical: ChemicalFound
 }
 
 const RISK_RULES: RiskRule[] = [
@@ -174,10 +276,6 @@ const RISK_RULES: RiskRule[] = [
   },
 ]
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 function analyzeIngredients(ingredients: string[]): {
   chemicals: ChemicalFound[]
   score: 'safe' | 'caution' | 'danger'
@@ -202,15 +300,17 @@ function analyzeIngredients(ingredients: string[]): {
   return { chemicals, score }
 }
 
-function parseIngredients(product: Record<string, any>): string[] {
-  // Prefer structured ingredient list
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function parseIngredients(product: Record<string, unknown>): string[] {
   if (Array.isArray(product.ingredients) && product.ingredients.length > 0) {
-    return product.ingredients
-      .map((i: any) => (typeof i === 'string' ? i : i?.text || i?.id || ''))
+    return (product.ingredients as unknown[])
+      .map((i: unknown) => (typeof i === 'string' ? i : (i as Record<string, string>)?.text || (i as Record<string, string>)?.id || ''))
       .filter(Boolean)
   }
-  // Fall back to raw text
-  const raw: string = product.ingredients_text || product.ingredients_text_en || ''
+  const raw: string = (product.ingredients_text as string) || (product.ingredients_text_en as string) || ''
   if (raw) {
     return raw
       .split(/[,;]/)
@@ -220,23 +320,28 @@ function parseIngredients(product: Record<string, any>): string[] {
   return []
 }
 
-function buildResult(product: Record<string, any>, barcode?: string): ScanResult {
+async function buildResult(product: Record<string, unknown>, barcode?: string): Promise<ScanResult> {
   const ingredients = parseIngredients(product)
-  const { chemicals, score } = analyzeIngredients(ingredients)
+  const productName =
+    (product.product_name_en as string) ||
+    (product.product_name as string) ||
+    (barcode ? `Product #${barcode}` : 'Unknown Product')
+  const brand = ((product.brands as string) || 'Unknown Brand').split(',')[0].trim()
+
+  // Try AI analysis first, fall back to rule-based
+  const aiResult = await analyzeWithAI(productName, brand, ingredients)
+  const { chemicals, score } = aiResult ?? analyzeIngredients(ingredients)
 
   return {
     id: `scan-${Date.now()}`,
     userId: '',
-    productName:
-      product.product_name_en ||
-      product.product_name ||
-      (barcode ? `Product #${barcode}` : 'Unknown Product'),
-    brand: (product.brands || 'Unknown Brand').split(',')[0].trim(),
+    productName,
+    brand,
     scannedAt: new Date().toISOString(),
     overallScore: score,
     chemicals,
     ingredients,
-    imageUrl: product.image_front_small_url || product.image_url || undefined,
+    imageUrl: (product.image_front_small_url as string) || (product.image_url as string) || undefined,
   }
 }
 
@@ -261,7 +366,7 @@ export async function GET(req: NextRequest) {
     if (barcode) {
       const res = await fetch(
         `https://world.openfoodfacts.org/api/v0/product/${encodeURIComponent(barcode)}.json`,
-        { headers: OFF_HEADERS, next: { revalidate: 3600 } }
+        { headers: OFF_HEADERS }
       )
       if (!res.ok) {
         return NextResponse.json({ error: 'product_not_found' }, { status: 404 })
@@ -270,13 +375,13 @@ export async function GET(req: NextRequest) {
       if (data.status !== 1 || !data.product) {
         return NextResponse.json({ error: 'product_not_found' }, { status: 404 })
       }
-      return NextResponse.json({ product: buildResult(data.product, barcode) })
+      return NextResponse.json({ product: await buildResult(data.product, barcode) })
     }
 
     // Name search
     const res = await fetch(
       `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(name!)}&json=1&page_size=5&action=process`,
-      { headers: OFF_HEADERS, next: { revalidate: 3600 } }
+      { headers: OFF_HEADERS }
     )
     if (!res.ok) {
       return NextResponse.json({ error: 'product_not_found' }, { status: 404 })
@@ -285,7 +390,7 @@ export async function GET(req: NextRequest) {
     if (!data.products || data.products.length === 0) {
       return NextResponse.json({ error: 'product_not_found' }, { status: 404 })
     }
-    return NextResponse.json({ product: buildResult(data.products[0]) })
+    return NextResponse.json({ product: await buildResult(data.products[0]) })
   } catch (err) {
     console.error('[/api/products]', err)
     return NextResponse.json({ error: 'Failed to fetch product data' }, { status: 500 })

@@ -540,8 +540,8 @@ export default function UserDashboard({ user }: Props) {
               {scanLoading && (
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center max-w-lg mx-auto">
                   <Loader2 className="w-10 h-10 text-brand-500 animate-spin mx-auto mb-4" />
-                  <p className="font-semibold text-gray-800">Analyzing product…</p>
-                  <p className="text-sm text-gray-400 mt-1">Checking 2,400+ chemicals and additives</p>
+                  <p className="font-semibold text-gray-800">AI is analyzing this product…</p>
+                  <p className="text-sm text-gray-400 mt-1">Scanning ingredients for harmful chemicals &amp; additives</p>
                 </div>
               )}
 
