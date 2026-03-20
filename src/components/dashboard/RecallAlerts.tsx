@@ -25,9 +25,10 @@ interface LegalLeadForm {
 interface RecallAlertsProps {
   userName?: string
   userEmail?: string
+  onShopClick?: () => void
 }
 
-export default function RecallAlerts({ userName = '', userEmail = '' }: RecallAlertsProps) {
+export default function RecallAlerts({ userName = '', userEmail = '', onShopClick }: RecallAlertsProps) {
   const [recalls, setRecalls] = useState<RecallAlert[]>([])
   const [expanded, setExpanded] = useState(true)
   const [legalModal, setLegalModal] = useState<RecallAlert | null>(null)
@@ -129,12 +130,12 @@ export default function RecallAlerts({ userName = '', userEmail = '' }: RecallAl
                 </div>
 
                 <div className="flex flex-wrap gap-2 mt-3">
-                  <a
-                    href="?tab=shop"
+                  <button
+                    onClick={() => onShopClick?.()}
                     className="text-xs font-semibold text-green-600 hover:text-green-700 flex items-center gap-1"
                   >
                     Shop Safer Alternatives →
-                  </a>
+                  </button>
 
                   {recall.severity === 'urgent' && (
                     <button

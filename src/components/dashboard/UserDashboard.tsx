@@ -343,7 +343,7 @@ export default function UserDashboard({ user }: Props) {
               {profile && <StageWidget userProfile={profile} />}
 
               {/* Recall Alerts */}
-              <RecallAlerts userName={user.name} userEmail={user.email} />
+              <RecallAlerts userName={user.name} userEmail={user.email} onShopClick={() => setActiveTab('shop')} />
 
               {/* Quick Scan */}
               <div className="bg-gradient-to-r from-brand-600 to-brand-500 rounded-2xl p-6 mb-6 text-white">
