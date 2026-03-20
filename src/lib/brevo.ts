@@ -197,20 +197,38 @@ ${body}
 </html>`
 }
 
+function ctaButton(href: string, label: string, style: 'primary' | 'secondary' = 'primary'): string {
+  if (style === 'secondary') {
+    return `<a href="${href}" style="display:inline-block;background:#ffffff;color:#16a34a;font-size:14px;font-weight:700;text-decoration:none;padding:12px 28px;border-radius:10px;border:2px solid #16a34a;">${label}</a>`
+  }
+  return `<a href="${href}" style="display:inline-block;background:#16a34a;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:14px 36px;border-radius:12px;letter-spacing:-0.2px;">${label}</a>`
+}
+
+function sectionLabel(text: string): string {
+  return `<p style="margin:0 0 6px;color:#16a34a;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">${text}</p>`
+}
+
+function divider(): string {
+  return `<div style="height:1px;background:linear-gradient(90deg,transparent,#e5e7eb,transparent);margin:32px 0;"></div>`
+}
+
 function affiliateProductsHtml(products: AffiliateProduct[]): string {
   const cards = products.slice(0, 3).map(p => `
-<td width="33%" style="padding:8px;vertical-align:top;">
-  <div style="background:#f8f9fa;border-radius:12px;overflow:hidden;text-align:center;">
-    <img src="${p.imageUrl}" alt="${p.title}" width="100%" style="height:140px;object-fit:cover;">
-    <div style="padding:12px;">
-      <p style="margin:0 0 4px;font-size:12px;font-weight:700;color:#1e293b;line-height:1.3;">${p.title.slice(0, 55)}${p.title.length > 55 ? '…' : ''}</p>
-      <p style="margin:0 0 8px;font-size:14px;font-weight:800;color:#22c55e;">${p.price}</p>
-      <a href="${p.affiliateUrl}" style="display:inline-block;background:#ff9900;color:#000;font-size:11px;font-weight:700;text-decoration:none;padding:6px 12px;border-radius:6px;">Buy on Amazon</a>
+<td width="33%" style="padding:6px;vertical-align:top;">
+  <div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;text-align:center;">
+    <div style="position:relative;">
+      <img src="${p.imageUrl}" alt="${p.title}" width="100%" style="height:130px;object-fit:cover;display:block;">
+      ${p.badge ? `<div style="position:absolute;top:8px;left:8px;background:#16a34a;color:#fff;font-size:9px;font-weight:700;padding:3px 7px;border-radius:20px;letter-spacing:.03em;text-transform:uppercase;">${p.badge}</div>` : ''}
+    </div>
+    <div style="padding:12px 10px 14px;">
+      <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#111827;line-height:1.4;">${p.title.slice(0, 52)}${p.title.length > 52 ? '…' : ''}</p>
+      <p style="margin:0 0 10px;font-size:15px;font-weight:800;color:#16a34a;">${p.price}</p>
+      <a href="${p.affiliateUrl}" style="display:inline-block;background:#ff9900;color:#000000;font-size:10px;font-weight:800;text-decoration:none;padding:6px 12px;border-radius:6px;letter-spacing:.02em;">View on Amazon</a>
     </div>
   </div>
 </td>`).join('')
 
-  return `<table width="100%" cellpadding="0" cellspacing="0"><tr>${cards}</tr></table>`
+  return `<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>${cards}</tr></table>`
 }
 
 // ─── Welcome email ───────────────────────────────────────────────────────────
@@ -222,37 +240,68 @@ export function buildWelcomeEmail(name: string, momStatus?: string): string {
   )
 
   const body = `
-<h2 style="margin:0 0 16px;color:#1e293b;font-size:22px;font-weight:800;">Welcome, ${name}! 🎉</h2>
-<p style="margin:0 0 16px;color:#475569;font-size:15px;line-height:1.6;">
-  You're now protected by FoodFactScanner — the #1 food safety app for families.
-  Here's what you can do right now:
-</p>
-<table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+<!-- Hero -->
+<div style="background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%);border-radius:14px;padding:32px 28px;margin:0 0 28px;text-align:center;border:1px solid #bbf7d0;">
+  <p style="margin:0 0 10px;font-size:36px;">🛡️</p>
+  ${sectionLabel("You're protected")}
+  <h2 style="margin:0 0 10px;color:#111827;font-size:24px;font-weight:800;line-height:1.3;">Welcome to FoodFactScanner, ${name}!</h2>
+  <p style="margin:0;color:#4b5563;font-size:15px;line-height:1.6;">Your family's food safety companion is ready. Here's how to get started:</p>
+</div>
+
+<!-- Feature rows -->
+<table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
   <tr>
-    <td style="padding:12px;background:#f0fdf4;border-radius:8px;margin-bottom:8px;">
-      <strong style="color:#16a34a;">📷 Scan any food label</strong>
-      <p style="margin:4px 0 0;color:#475569;font-size:13px;">Point your camera at any ingredient list to instantly detect heavy metals, pesticides, and harmful additives.</p>
+    <td style="padding:14px 16px;background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:10px;">
+      <table width="100%" cellpadding="0" cellspacing="0"><tr>
+        <td width="44" style="vertical-align:top;padding-right:14px;">
+          <div style="width:40px;height:40px;background:#dcfce7;border-radius:10px;text-align:center;line-height:40px;font-size:20px;">📷</div>
+        </td>
+        <td style="vertical-align:top;">
+          <p style="margin:0 0 3px;color:#111827;font-size:14px;font-weight:700;">Scan any food label</p>
+          <p style="margin:0;color:#6b7280;font-size:13px;line-height:1.5;">Point your camera at any ingredient list to instantly detect heavy metals, pesticides, and harmful additives.</p>
+        </td>
+      </tr></table>
     </td>
   </tr>
-  <tr><td style="height:8px;"></td></tr>
+  <tr><td style="height:10px;"></td></tr>
   <tr>
-    <td style="padding:12px;background:#f0fdf4;border-radius:8px;">
-      <strong style="color:#16a34a;">🛡️ Get personalized alerts</strong>
-      <p style="margin:4px 0 0;color:#475569;font-size:13px;">We flag risks specific to your stage — pregnancy, breastfeeding, or your baby's age.</p>
+    <td style="padding:14px 16px;background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:10px;">
+      <table width="100%" cellpadding="0" cellspacing="0"><tr>
+        <td width="44" style="vertical-align:top;padding-right:14px;">
+          <div style="width:40px;height:40px;background:#dcfce7;border-radius:10px;text-align:center;line-height:40px;font-size:20px;">🛡️</div>
+        </td>
+        <td style="vertical-align:top;">
+          <p style="margin:0 0 3px;color:#111827;font-size:14px;font-weight:700;">Personalized safety alerts</p>
+          <p style="margin:0;color:#6b7280;font-size:13px;line-height:1.5;">We flag risks specific to your stage — pregnancy, breastfeeding, or your baby's age.</p>
+        </td>
+      </tr></table>
     </td>
   </tr>
-  <tr><td style="height:8px;"></td></tr>
+  <tr><td style="height:10px;"></td></tr>
   <tr>
-    <td style="padding:12px;background:#f0fdf4;border-radius:8px;">
-      <strong style="color:#16a34a;">📬 Weekly safety newsletter</strong>
-      <p style="margin:4px 0 0;color:#475569;font-size:13px;">FDA recall alerts and stage-based nutrition tips delivered to your inbox.</p>
+    <td style="padding:14px 16px;background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;">
+      <table width="100%" cellpadding="0" cellspacing="0"><tr>
+        <td width="44" style="vertical-align:top;padding-right:14px;">
+          <div style="width:40px;height:40px;background:#dcfce7;border-radius:10px;text-align:center;line-height:40px;font-size:20px;">📬</div>
+        </td>
+        <td style="vertical-align:top;">
+          <p style="margin:0 0 3px;color:#111827;font-size:14px;font-weight:700;">Weekly safety newsletter</p>
+          <p style="margin:0;color:#6b7280;font-size:13px;line-height:1.5;">FDA recall alerts and stage-based nutrition tips delivered every week.</p>
+        </td>
+      </tr></table>
     </td>
   </tr>
 </table>
-<div style="text-align:center;margin:0 0 32px;">
-  <a href="${appUrl}/dashboard" style="display:inline-block;background:#22c55e;color:#fff;font-size:16px;font-weight:700;text-decoration:none;padding:14px 32px;border-radius:12px;">Start Scanning Now →</a>
+
+<div style="text-align:center;margin:0 0 8px;">
+  ${ctaButton(`${appUrl}/dashboard`, 'Start Scanning Now →')}
 </div>
-<h3 style="margin:0 0 16px;color:#1e293b;font-size:16px;font-weight:700;">🛍️ Recommended Safe Products For You</h3>
+<p style="text-align:center;margin:0 0 0;color:#9ca3af;font-size:12px;">You have 3 free scans — no credit card needed</p>
+
+${divider()}
+
+${sectionLabel('Safe picks for you')}
+<h3 style="margin:0 0 16px;color:#111827;font-size:17px;font-weight:700;">Recommended Products for Your Family</h3>
 ${affiliateProductsHtml(products)}
 `
   return emailWrapper('Welcome to FoodFactScanner!', body)
@@ -265,26 +314,34 @@ export function buildScanResultEmail(
   scan: ScanResult,
   userProfile?: UserProfile
 ): string {
-  const scoreColor = scan.overallScore === 'safe' ? '#22c55e' : scan.overallScore === 'caution' ? '#f59e0b' : '#ef4444'
-  const scoreLabel = scan.overallScore.toUpperCase()
-  const scoreEmoji = scan.overallScore === 'safe' ? '✅' : scan.overallScore === 'caution' ? '⚠️' : '🚨'
+  const isSafe = scan.overallScore === 'safe'
+  const isCaution = scan.overallScore === 'caution'
+  const scoreBg = isSafe ? '#f0fdf4' : isCaution ? '#fffbeb' : '#fef2f2'
+  const scoreBorder = isSafe ? '#bbf7d0' : isCaution ? '#fde68a' : '#fecaca'
+  const scoreTextColor = isSafe ? '#166534' : isCaution ? '#92400e' : '#991b1b'
+  const scoreLabel = isSafe ? '✅ SAFE' : isCaution ? '⚠️ CAUTION' : '🚨 DANGER'
+  const scoreMessage = isSafe
+    ? 'No harmful chemicals detected in this product.'
+    : isCaution
+    ? 'Some concerning ingredients found — review below.'
+    : 'Harmful chemicals detected — consider a safer alternative.'
 
   const chemicalsHtml = scan.chemicals.length > 0 ? `
-<table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;border-collapse:collapse;">
-  <tr style="background:#f1f5f9;">
-    <th style="text-align:left;padding:10px 12px;font-size:12px;color:#64748b;font-weight:600;">Chemical</th>
-    <th style="text-align:left;padding:10px 12px;font-size:12px;color:#64748b;font-weight:600;">Level</th>
-    <th style="text-align:left;padding:10px 12px;font-size:12px;color:#64748b;font-weight:600;">Health Risk</th>
+<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
+  <tr style="background:#f9fafb;">
+    <th style="text-align:left;padding:10px 14px;font-size:11px;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;">Ingredient</th>
+    <th style="text-align:left;padding:10px 14px;font-size:11px;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;">Level</th>
+    <th style="text-align:left;padding:10px 14px;font-size:11px;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #e5e7eb;">Health Risk</th>
   </tr>
   ${scan.chemicals.map((c, i) => `
-  <tr style="background:${i % 2 === 0 ? '#ffffff' : '#f8fafc'};">
-    <td style="padding:10px 12px;font-size:13px;color:#1e293b;font-weight:600;">${c.name}</td>
-    <td style="padding:10px 12px;">
-      <span style="background:${c.level === 'high' ? '#fee2e2' : c.level === 'medium' ? '#fef3c7' : '#dcfce7'};color:${c.level === 'high' ? '#dc2626' : c.level === 'medium' ? '#d97706' : '#16a34a'};font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;">${c.level.toUpperCase()}</span>
+  <tr style="background:${i % 2 === 0 ? '#ffffff' : '#f9fafb'};">
+    <td style="padding:11px 14px;font-size:13px;color:#111827;font-weight:600;border-bottom:1px solid #f3f4f6;">${c.name}</td>
+    <td style="padding:11px 14px;border-bottom:1px solid #f3f4f6;">
+      <span style="background:${c.level === 'high' ? '#fee2e2' : c.level === 'medium' ? '#fef3c7' : '#dcfce7'};color:${c.level === 'high' ? '#b91c1c' : c.level === 'medium' ? '#b45309' : '#15803d'};font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;letter-spacing:.03em;">${c.level.toUpperCase()}</span>
     </td>
-    <td style="padding:10px 12px;font-size:12px;color:#64748b;">${c.healthRisk}</td>
+    <td style="padding:11px 14px;font-size:12px;color:#6b7280;line-height:1.4;border-bottom:1px solid #f3f4f6;">${c.healthRisk}</td>
   </tr>`).join('')}
-</table>` : '<p style="color:#22c55e;font-weight:600;">✅ No harmful chemicals detected!</p>'
+</table>` : ''
 
   const concerns = userProfile?.concerns ?? []
   const saferProducts = getRecommendedProducts(
@@ -295,26 +352,42 @@ export function buildScanResultEmail(
   )
 
   const body = `
-<h2 style="margin:0 0 16px;color:#1e293b;font-size:20px;font-weight:800;">Hi ${name}, here's your scan result</h2>
-<div style="background:#f8f9fa;border-radius:12px;padding:20px;margin:0 0 24px;">
-  <div style="display:flex;align-items:center;gap:12px;">
-    <div>
-      <h3 style="margin:0;color:#1e293b;font-size:16px;font-weight:700;">${scan.productName}</h3>
-      <p style="margin:4px 0 0;color:#64748b;font-size:13px;">${scan.brand}</p>
-    </div>
-    <div style="margin-left:auto;text-align:right;">
-      <span style="display:inline-block;background:${scoreColor};color:#fff;font-size:14px;font-weight:800;padding:6px 16px;border-radius:8px;">${scoreEmoji} ${scoreLabel}</span>
-    </div>
-  </div>
+${sectionLabel('Your scan result')}
+<h2 style="margin:0 0 20px;color:#111827;font-size:22px;font-weight:800;">Hi ${name}, here's what we found</h2>
+
+<!-- Product card -->
+<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:14px;padding:18px 20px;margin:0 0 16px;">
+  <table width="100%" cellpadding="0" cellspacing="0"><tr>
+    <td style="vertical-align:middle;">
+      <p style="margin:0 0 2px;color:#111827;font-size:16px;font-weight:700;">${scan.productName}</p>
+      <p style="margin:0;color:#9ca3af;font-size:13px;">${scan.brand}</p>
+    </td>
+    <td style="vertical-align:middle;text-align:right;white-space:nowrap;">
+      <span style="display:inline-block;background:${scoreBg};color:${scoreTextColor};border:1px solid ${scoreBorder};font-size:13px;font-weight:800;padding:6px 14px;border-radius:20px;">${scoreLabel}</span>
+    </td>
+  </tr></table>
 </div>
-<h3 style="margin:0 0 12px;color:#1e293b;font-size:15px;font-weight:700;">Chemicals Found</h3>
-${chemicalsHtml}
+
+<!-- Score summary -->
+<div style="background:${scoreBg};border:1px solid ${scoreBorder};border-radius:12px;padding:14px 18px;margin:0 0 24px;">
+  <p style="margin:0;color:${scoreTextColor};font-size:14px;font-weight:600;">${scoreMessage}</p>
+</div>
+
+${scan.chemicals.length > 0 ? `
+${sectionLabel('Chemicals detected')}
+<h3 style="margin:0 0 12px;color:#111827;font-size:15px;font-weight:700;">Ingredient Breakdown</h3>
+${chemicalsHtml}` : ''}
+
 ${scan.overallScore !== 'safe' ? `
-<h3 style="margin:0 0 16px;color:#1e293b;font-size:15px;font-weight:700;">🛡️ Safer Alternatives We Recommend</h3>
+${divider()}
+${sectionLabel('Safer alternatives')}
+<h3 style="margin:0 0 16px;color:#111827;font-size:17px;font-weight:700;">We Recommend These Instead</h3>
 ${affiliateProductsHtml(saferProducts)}
 ` : ''}
-<div style="text-align:center;margin:24px 0 0;">
-  <a href="${appUrl}/dashboard" style="display:inline-block;background:#22c55e;color:#fff;font-size:15px;font-weight:700;text-decoration:none;padding:12px 28px;border-radius:10px;">Scan Another Product →</a>
+
+${divider()}
+<div style="text-align:center;">
+  ${ctaButton(`${appUrl}/dashboard`, 'Scan Another Product →')}
 </div>
 `
   return emailWrapper(`Scan Result: ${scan.productName}`, body)
@@ -337,45 +410,69 @@ export function buildNewsletterEmail(
   recalls: RecallAlert[]
 ): string {
   let stageHeader = 'Your Weekly Food Safety Update'
+  let stageEmoji = '🥦'
   let tips: string[] = ['Always scan food labels before feeding your baby.', 'Choose organic when possible for the dirty dozen produce.']
 
   if (userProfile.momStatus === 'expecting' && userProfile.dueDate) {
     const week = getPregnancyWeek(userProfile.dueDate)
-    stageHeader = `Week ${week} of Pregnancy 🤰`
+    stageHeader = `Week ${week} of Your Pregnancy`
+    stageEmoji = '🤰'
     tips = getTrimesterTips(week)
   } else if ((userProfile.momStatus === 'newborn' || userProfile.momStatus === 'toddler') && userProfile.babyAgeMonths !== undefined) {
     const ageLabel = getBabyAgeLabel(userProfile.babyAgeMonths)
-    stageHeader = `${userProfile.babyName ? userProfile.babyName + ' is ' : ''}${ageLabel} 👶`
+    stageHeader = userProfile.babyName ? `${userProfile.babyName} is ${ageLabel}` : ageLabel
+    stageEmoji = '👶'
     tips = getMonthMilestoneTips(userProfile.babyAgeMonths)
   }
 
   const urgentRecalls = recalls.filter(r => r.severity === 'urgent').slice(0, 2)
   const recallsHtml = urgentRecalls.length > 0 ? `
-<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:20px;margin:0 0 24px;">
-  <h3 style="margin:0 0 12px;color:#dc2626;font-size:15px;font-weight:700;">🚨 Active Recall Alerts</h3>
-  ${urgentRecalls.map(r => `
-  <div style="border-top:1px solid #fecaca;padding:12px 0;">
-    <strong style="color:#1e293b;">${r.product}</strong> by ${r.brand}<br>
-    <span style="color:#dc2626;font-size:13px;">${r.reason}</span><br>
-    <span style="color:#64748b;font-size:12px;">Lots: ${r.affectedLots}</span>
-  </div>`).join('')}
-  <a href="${appUrl}/dashboard" style="display:inline-block;margin-top:12px;color:#dc2626;font-size:13px;font-weight:700;text-decoration:none;">View All Recalls in App →</a>
-</div>` : ''
+${divider()}
+${sectionLabel('⚠️ Active alerts')}
+<h3 style="margin:0 0 14px;color:#111827;font-size:17px;font-weight:700;">FDA Recall Alerts This Week</h3>
+${urgentRecalls.map(r => `
+<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:16px 18px;margin:0 0 10px;">
+  <table width="100%" cellpadding="0" cellspacing="0"><tr>
+    <td style="vertical-align:middle;">
+      <p style="margin:0 0 2px;color:#111827;font-size:14px;font-weight:700;">${r.product}</p>
+      <p style="margin:0 0 4px;color:#9ca3af;font-size:12px;">by ${r.brand}</p>
+      <p style="margin:0;color:#b91c1c;font-size:13px;font-weight:600;">${r.reason}</p>
+    </td>
+    <td style="vertical-align:middle;text-align:right;white-space:nowrap;padding-left:12px;">
+      <span style="background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;">RECALL</span>
+    </td>
+  </tr></table>
+  <p style="margin:8px 0 0;color:#6b7280;font-size:12px;">Affected lots: ${r.affectedLots}</p>
+</div>`).join('')}
+<p style="margin:8px 0 0;"><a href="${appUrl}/dashboard" style="color:#b91c1c;font-size:13px;font-weight:700;text-decoration:none;">View all recalls in app →</a></p>
+` : ''
 
   const products = getRecommendedProducts(userProfile.concerns ?? [], userProfile.momStatus)
 
   const body = `
-<h2 style="margin:0 0 4px;color:#1e293b;font-size:22px;font-weight:800;">Hi ${name}! 👋</h2>
-<p style="margin:0 0 24px;color:#64748b;font-size:13px;">Your weekly FoodFactScanner update</p>
-<div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-radius:12px;padding:20px;margin:0 0 24px;">
-  <h3 style="margin:0 0 12px;color:#16a34a;font-size:16px;font-weight:700;">${stageHeader}</h3>
-  ${tips.map(t => `<p style="margin:0 0 8px;color:#1e293b;font-size:14px;line-height:1.6;">• ${t}</p>`).join('')}
+${sectionLabel('Weekly update')}
+<h2 style="margin:0 0 20px;color:#111827;font-size:22px;font-weight:800;">Hi ${name}! 👋</h2>
+
+<!-- Stage card -->
+<div style="background:linear-gradient(135deg,#166534 0%,#15803d 100%);border-radius:14px;padding:24px 24px;margin:0 0 28px;">
+  <p style="margin:0 0 6px;font-size:28px;">${stageEmoji}</p>
+  <p style="margin:0 0 6px;color:rgba(255,255,255,.7);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">This week</p>
+  <h3 style="margin:0 0 14px;color:#ffffff;font-size:18px;font-weight:800;">${stageHeader}</h3>
+  ${tips.map(t => `
+  <div style="background:rgba(255,255,255,.12);border-radius:8px;padding:10px 14px;margin:0 0 8px;">
+    <p style="margin:0;color:rgba(255,255,255,.95);font-size:13px;line-height:1.5;">${t}</p>
+  </div>`).join('')}
 </div>
+
 ${recallsHtml}
-<h3 style="margin:0 0 16px;color:#1e293b;font-size:15px;font-weight:700;">🛍️ This Week's Safe Picks For You</h3>
+
+${divider()}
+${sectionLabel("This week's safe picks")}
+<h3 style="margin:0 0 16px;color:#111827;font-size:17px;font-weight:700;">Recommended for Your Family</h3>
 ${affiliateProductsHtml(products)}
+
 <div style="text-align:center;margin:24px 0 0;">
-  <a href="${appUrl}/dashboard?tab=shop" style="display:inline-block;background:#22c55e;color:#fff;font-size:15px;font-weight:700;text-decoration:none;padding:12px 28px;border-radius:10px;">View Full Safe Shop →</a>
+  ${ctaButton(`${appUrl}/dashboard?tab=shop`, 'Shop All Safe Products →')}
 </div>
 `
   return emailWrapper('Your Weekly Food Safety Update', body)
@@ -389,25 +486,51 @@ export function buildRecallAlertEmail(name: string, recall: RecallAlert): string
   ).slice(0, 3)
 
   const body = `
-<div style="background:#fef2f2;border-radius:12px;padding:20px;margin:0 0 24px;text-align:center;">
-  <p style="margin:0;font-size:32px;">🚨</p>
-  <h2 style="margin:8px 0 4px;color:#dc2626;font-size:20px;font-weight:800;">Food Safety Recall Alert</h2>
-  <p style="margin:0;color:#64748b;font-size:13px;">Action may be required</p>
+<!-- Alert banner -->
+<div style="background:#fef2f2;border:2px solid #fecaca;border-radius:14px;padding:24px;margin:0 0 24px;text-align:center;">
+  <p style="margin:0 0 8px;font-size:40px;">🚨</p>
+  <p style="margin:0 0 4px;color:#b91c1c;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;">Action Required</p>
+  <h2 style="margin:0;color:#991b1b;font-size:22px;font-weight:800;line-height:1.3;">Food Safety Recall Alert</h2>
 </div>
-<p style="margin:0 0 16px;color:#475569;font-size:15px;">Hi ${name}, we wanted to alert you about a recent recall that may affect products you use:</p>
-<div style="background:#f8f9fa;border-radius:12px;padding:20px;margin:0 0 24px;">
-  <h3 style="margin:0 0 4px;color:#1e293b;font-size:16px;font-weight:700;">${recall.product}</h3>
-  <p style="margin:0 0 8px;color:#64748b;font-size:13px;">by ${recall.brand}</p>
-  <p style="margin:0 0 8px;color:#dc2626;font-size:14px;font-weight:600;">Reason: ${recall.reason}</p>
-  <p style="margin:0;color:#64748b;font-size:13px;">Affected lots: ${recall.affectedLots}</p>
+
+<p style="margin:0 0 20px;color:#4b5563;font-size:15px;line-height:1.6;">Hi ${name}, a recent recall may affect products in your home. Please review the details below.</p>
+
+<!-- Recall details -->
+<div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;margin:0 0 24px;">
+  <div style="background:#fef2f2;padding:14px 18px;border-bottom:1px solid #fecaca;">
+    <p style="margin:0;color:#b91c1c;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;">Recalled Product</p>
+  </div>
+  <div style="padding:18px;">
+    <h3 style="margin:0 0 4px;color:#111827;font-size:17px;font-weight:800;">${recall.product}</h3>
+    <p style="margin:0 0 14px;color:#9ca3af;font-size:13px;">by ${recall.brand}</p>
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td width="100" style="padding:6px 0;vertical-align:top;"><p style="margin:0;color:#9ca3af;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;">Reason</p></td>
+        <td style="padding:6px 0;vertical-align:top;"><p style="margin:0;color:#b91c1c;font-size:13px;font-weight:600;">${recall.reason}</p></td>
+      </tr>
+      <tr>
+        <td style="padding:6px 0;vertical-align:top;"><p style="margin:0;color:#9ca3af;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;">Lots</p></td>
+        <td style="padding:6px 0;vertical-align:top;"><p style="margin:0;color:#374151;font-size:13px;">${recall.affectedLots}</p></td>
+      </tr>
+    </table>
+  </div>
 </div>
-<p style="margin:0 0 24px;color:#475569;font-size:14px;line-height:1.6;">
-  <strong>What to do:</strong> Check your pantry for this product. If you have it, do not use it — dispose of it safely or return to place of purchase for a refund.
-</p>
-<h3 style="margin:0 0 16px;color:#1e293b;font-size:15px;font-weight:700;">🛡️ Safer Alternatives</h3>
+
+<!-- What to do -->
+<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:18px;margin:0 0 28px;">
+  <p style="margin:0 0 10px;color:#166534;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;">What to do</p>
+  <p style="margin:0 0 6px;color:#374151;font-size:14px;line-height:1.5;">✓ Check your pantry and fridge for this product</p>
+  <p style="margin:0 0 6px;color:#374151;font-size:14px;line-height:1.5;">✓ Do not feed it to your baby — dispose safely</p>
+  <p style="margin:0;color:#374151;font-size:14px;line-height:1.5;">✓ Return to place of purchase for a full refund</p>
+</div>
+
+${divider()}
+${sectionLabel('Safer alternatives')}
+<h3 style="margin:0 0 16px;color:#111827;font-size:17px;font-weight:700;">Products We Trust Instead</h3>
 ${affiliateProductsHtml(saferProducts)}
+
 <div style="text-align:center;margin:24px 0 0;">
-  <a href="${appUrl}/dashboard" style="display:inline-block;background:#22c55e;color:#fff;font-size:15px;font-weight:700;text-decoration:none;padding:12px 28px;border-radius:10px;">Check Your Scan History →</a>
+  ${ctaButton(`${appUrl}/dashboard`, 'Check Your Scan History →')}
 </div>
 `
   return emailWrapper('🚨 Food Safety Recall Alert', body)
@@ -419,54 +542,52 @@ export function buildDay2NurtureEmail(name: string, momStatus?: string): string 
   const products = getRecommendedProducts(['heavy-metals'], momStatus ?? 'other').slice(0, 3)
 
   const body = `
-<h2 style="margin:0 0 16px;color:#1e293b;font-size:22px;font-weight:800;">Hi ${name}, did you know these 3 ingredients could be harming your baby?</h2>
-<p style="margin:0 0 24px;color:#475569;font-size:15px;line-height:1.6;">
-  Most parents assume "baby food" means "safe food." Unfortunately, that's not always true.
-  Independent lab testing has found alarming levels of these toxic ingredients in popular baby food brands:
-</p>
+${sectionLabel('Did you know?')}
+<h2 style="margin:0 0 12px;color:#111827;font-size:22px;font-weight:800;line-height:1.3;">Hi ${name} — 3 hidden ingredients that could be harming your baby</h2>
+<p style="margin:0 0 28px;color:#6b7280;font-size:15px;line-height:1.6;">Most parents assume "baby food" means "safe food." Independent lab testing says otherwise.</p>
 
-<table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px;border-collapse:collapse;">
+<!-- Ingredient cards -->
+<table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
   <tr>
-    <td width="33%" style="padding:8px;vertical-align:top;">
-      <div style="background:#fef2f2;border:2px solid #fecaca;border-radius:12px;padding:20px;text-align:center;">
-        <p style="margin:0 0 8px;font-size:28px;">☠️</p>
-        <h3 style="margin:0 0 8px;color:#dc2626;font-size:16px;font-weight:800;">Arsenic</h3>
-        <p style="margin:0;color:#475569;font-size:13px;line-height:1.5;">Found in rice-based cereals and snacks. Linked to developmental delays, learning disabilities, and immune system damage in infants.</p>
+    <td width="33%" style="padding:5px;vertical-align:top;">
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:18px 14px;text-align:center;height:100%;">
+        <p style="margin:0 0 10px;font-size:30px;">☠️</p>
+        <p style="margin:0 0 6px;color:#b91c1c;font-size:14px;font-weight:800;">Arsenic</p>
+        <p style="margin:0;color:#6b7280;font-size:12px;line-height:1.5;">Found in rice cereals. Linked to developmental delays and immune damage in infants.</p>
       </div>
     </td>
-    <td width="33%" style="padding:8px;vertical-align:top;">
-      <div style="background:#fff7ed;border:2px solid #fed7aa;border-radius:12px;padding:20px;text-align:center;">
-        <p style="margin:0 0 8px;font-size:28px;">🧪</p>
-        <h3 style="margin:0 0 8px;color:#ea580c;font-size:16px;font-weight:800;">BPA</h3>
-        <p style="margin:0;color:#475569;font-size:13px;line-height:1.5;">Leaches from plastic packaging and can linings. Acts as an endocrine disruptor — interfering with hormone development in babies and toddlers.</p>
+    <td width="33%" style="padding:5px;vertical-align:top;">
+      <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:18px 14px;text-align:center;height:100%;">
+        <p style="margin:0 0 10px;font-size:30px;">🧪</p>
+        <p style="margin:0 0 6px;color:#c2410c;font-size:14px;font-weight:800;">BPA</p>
+        <p style="margin:0;color:#6b7280;font-size:12px;line-height:1.5;">Leaches from plastic packaging. Disrupts hormone development in babies and toddlers.</p>
       </div>
     </td>
-    <td width="33%" style="padding:8px;vertical-align:top;">
-      <div style="background:#fdf4ff;border:2px solid #e9d5ff;border-radius:12px;padding:20px;text-align:center;">
-        <p style="margin:0 0 8px;font-size:28px;">🎨</p>
-        <h3 style="margin:0 0 8px;color:#9333ea;font-size:16px;font-weight:800;">Artificial Dyes</h3>
-        <p style="margin:0;color:#475569;font-size:13px;line-height:1.5;">Red 40, Yellow 5 &amp; 6 are linked to hyperactivity and behavioral issues in children. Banned in several European countries — still common in US baby snacks.</p>
+    <td width="33%" style="padding:5px;vertical-align:top;">
+      <div style="background:#fdf4ff;border:1px solid #e9d5ff;border-radius:12px;padding:18px 14px;text-align:center;height:100%;">
+        <p style="margin:0 0 10px;font-size:30px;">🎨</p>
+        <p style="margin:0 0 6px;color:#7e22ce;font-size:14px;font-weight:800;">Artificial Dyes</p>
+        <p style="margin:0;color:#6b7280;font-size:12px;line-height:1.5;">Red 40, Yellow 5 &amp; 6 — linked to hyperactivity. Banned in Europe, still in US snacks.</p>
       </div>
     </td>
   </tr>
 </table>
 
-<div style="background:#f0fdf4;border-left:4px solid #22c55e;border-radius:0 12px 12px 0;padding:20px;margin:0 0 28px;">
-  <h3 style="margin:0 0 8px;color:#16a34a;font-size:15px;font-weight:700;">🔬 What the research says</h3>
-  <p style="margin:0;color:#475569;font-size:14px;line-height:1.6;">
-    A 2021 Congressional investigation found that <strong>95% of baby foods tested contained toxic heavy metals</strong>, including arsenic, lead, cadmium, and mercury. Many major brands — including ones you likely trust — were named in the report.
-  </p>
+<!-- Research callout -->
+<div style="background:#f0fdf4;border-left:4px solid #16a34a;border-radius:0 12px 12px 0;padding:18px 20px;margin:0 0 24px;">
+  <p style="margin:0 0 6px;color:#166534;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;">🔬 What the research says</p>
+  <p style="margin:0;color:#374151;font-size:14px;line-height:1.6;">A 2021 Congressional investigation found <strong>95% of baby foods tested contained toxic heavy metals</strong> — arsenic, lead, cadmium, mercury. Many trusted brands were named.</p>
 </div>
 
-<p style="margin:0 0 24px;color:#475569;font-size:15px;line-height:1.6;">
-  The good news? You can check <strong>every product before you feed it to your baby</strong> — in under 10 seconds. FoodFactScanner instantly flags these dangerous ingredients so you know exactly what's in your baby's food.
-</p>
+<p style="margin:0 0 28px;color:#4b5563;font-size:15px;line-height:1.6;">The good news? You can check <strong>every product in under 10 seconds</strong> before feeding it to your baby.</p>
 
-<div style="text-align:center;margin:0 0 36px;">
-  <a href="${appUrl}/dashboard" style="display:inline-block;background:#22c55e;color:#fff;font-size:17px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:12px;letter-spacing:-0.3px;">🛡️ Scan Your Baby's Food Now →</a>
+<div style="text-align:center;margin:0 0 8px;">
+  ${ctaButton(`${appUrl}/dashboard`, '🛡️ Scan Your Baby\'s Food Now →')}
 </div>
 
-<h3 style="margin:0 0 16px;color:#1e293b;font-size:16px;font-weight:700;">🛡️ Parents Who Scanned Also Bought</h3>
+${divider()}
+${sectionLabel('Parents who scanned also bought')}
+<h3 style="margin:0 0 16px;color:#111827;font-size:17px;font-weight:700;">Trusted Safe Alternatives</h3>
 ${affiliateProductsHtml(products)}
 `
   return emailWrapper('Did you know these 3 ingredients could be harming your baby?', body)
@@ -476,83 +597,72 @@ ${affiliateProductsHtml(products)}
 
 export function buildDay5UpsellEmail(name: string, plan: string): string {
   const body = `
-<h2 style="margin:0 0 16px;color:#1e293b;font-size:22px;font-weight:800;">Hi ${name}, your free scans are almost up 🚨</h2>
-<p style="margin:0 0 24px;color:#475569;font-size:15px;line-height:1.6;">
-  Don't leave your baby unprotected. Over <strong>1,247 moms upgraded this week</strong> — here's why:
-</p>
+${sectionLabel('Your account')}
+<h2 style="margin:0 0 12px;color:#111827;font-size:22px;font-weight:800;">Hi ${name}, your free scans are almost up</h2>
+<p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.6;">Over <strong style="color:#111827;">1,247 moms upgraded this week</strong> to keep their families protected. Here's why:</p>
 
-<div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-radius:12px;padding:20px;margin:0 0 28px;text-align:center;">
-  <p style="margin:0;font-size:32px;">💬</p>
-  <p style="margin:8px 0 0;color:#1e293b;font-size:15px;font-style:italic;line-height:1.6;">
-    "I upgraded to Pro on day 3. Within a week I got a recall alert for a snack I had already bought. FoodFactScanner literally saved my baby."
-  </p>
-  <p style="margin:12px 0 0;color:#16a34a;font-size:13px;font-weight:700;">— Jessica M., mom of 2, upgraded last week</p>
+<!-- Testimonial -->
+<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:20px 22px;margin:0 0 28px;">
+  <p style="margin:0 0 4px;font-size:22px;">💬</p>
+  <p style="margin:0 0 12px;color:#1f2937;font-size:15px;font-style:italic;line-height:1.7;">"I upgraded to Pro on day 3. Within a week I got a recall alert for a snack I had already bought. FoodFactScanner literally saved my baby."</p>
+  <p style="margin:0;color:#16a34a;font-size:13px;font-weight:700;">— Jessica M., mom of 2 · upgraded last week</p>
 </div>
 
-<h3 style="margin:0 0 16px;color:#1e293b;font-size:16px;font-weight:700;">Compare Plans</h3>
-<table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px;border-collapse:collapse;border-radius:12px;overflow:hidden;">
-  <tr style="background:#1e293b;">
-    <th style="padding:14px 16px;text-align:left;color:#94a3b8;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Feature</th>
-    <th style="padding:14px 16px;text-align:center;color:#94a3b8;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Free</th>
-    <th style="padding:14px 16px;text-align:center;color:#fbbf24;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Starter</th>
-    <th style="padding:14px 16px;text-align:center;color:#4ade80;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Pro ⭐</th>
+${sectionLabel('Choose your plan')}
+<h3 style="margin:0 0 14px;color:#111827;font-size:17px;font-weight:700;">Compare Plans</h3>
+
+<!-- Plan table -->
+<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;margin:0 0 20px;">
+  <tr style="background:#111827;">
+    <th style="padding:12px 14px;text-align:left;color:#9ca3af;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Feature</th>
+    <th style="padding:12px 10px;text-align:center;color:#9ca3af;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Free</th>
+    <th style="padding:12px 10px;text-align:center;color:#fbbf24;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Starter</th>
+    <th style="padding:12px 10px;text-align:center;color:#4ade80;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Pro ⭐</th>
+  </tr>
+  <tr style="background:#ffffff;border-bottom:1px solid #f3f4f6;">
+    <td style="padding:12px 14px;font-size:13px;color:#374151;font-weight:600;">Price</td>
+    <td style="padding:12px 10px;text-align:center;font-size:13px;color:#9ca3af;">Free</td>
+    <td style="padding:12px 10px;text-align:center;font-size:13px;color:#c2410c;font-weight:700;">$4.99</td>
+    <td style="padding:12px 10px;text-align:center;font-size:13px;color:#16a34a;font-weight:700;">$14.99/mo</td>
+  </tr>
+  <tr style="background:#f9fafb;border-bottom:1px solid #f3f4f6;">
+    <td style="padding:12px 14px;font-size:13px;color:#374151;font-weight:600;">Scans</td>
+    <td style="padding:12px 10px;text-align:center;font-size:13px;color:#9ca3af;">3</td>
+    <td style="padding:12px 10px;text-align:center;font-size:13px;color:#374151;font-weight:600;">50</td>
+    <td style="padding:12px 10px;text-align:center;font-size:13px;color:#374151;font-weight:700;">Unlimited</td>
+  </tr>
+  <tr style="background:#ffffff;border-bottom:1px solid #f3f4f6;">
+    <td style="padding:12px 14px;font-size:13px;color:#374151;font-weight:600;">Email Reports</td>
+    <td style="padding:12px 10px;text-align:center;color:#d1d5db;font-size:16px;">✗</td>
+    <td style="padding:12px 10px;text-align:center;color:#16a34a;font-size:16px;">✓</td>
+    <td style="padding:12px 10px;text-align:center;color:#16a34a;font-size:16px;">✓</td>
+  </tr>
+  <tr style="background:#f9fafb;border-bottom:1px solid #f3f4f6;">
+    <td style="padding:12px 14px;font-size:13px;color:#374151;font-weight:600;">Recall Alerts</td>
+    <td style="padding:12px 10px;text-align:center;color:#d1d5db;font-size:16px;">✗</td>
+    <td style="padding:12px 10px;text-align:center;color:#d1d5db;font-size:16px;">✗</td>
+    <td style="padding:12px 10px;text-align:center;color:#16a34a;font-size:16px;">✓</td>
   </tr>
   <tr style="background:#ffffff;">
-    <td style="padding:14px 16px;font-size:14px;color:#1e293b;font-weight:600;border-bottom:1px solid #f1f5f9;">Price</td>
-    <td style="padding:14px 16px;text-align:center;font-size:14px;color:#64748b;border-bottom:1px solid #f1f5f9;">Free</td>
-    <td style="padding:14px 16px;text-align:center;font-size:14px;color:#ea580c;font-weight:700;border-bottom:1px solid #f1f5f9;">$4.99</td>
-    <td style="padding:14px 16px;text-align:center;font-size:14px;color:#16a34a;font-weight:700;border-bottom:1px solid #f1f5f9;">$14.99/mo</td>
-  </tr>
-  <tr style="background:#f8fafc;">
-    <td style="padding:14px 16px;font-size:14px;color:#1e293b;font-weight:600;border-bottom:1px solid #f1f5f9;">Scans</td>
-    <td style="padding:14px 16px;text-align:center;font-size:14px;color:#64748b;border-bottom:1px solid #f1f5f9;">3 scans</td>
-    <td style="padding:14px 16px;text-align:center;font-size:14px;color:#1e293b;font-weight:600;border-bottom:1px solid #f1f5f9;">50 scans</td>
-    <td style="padding:14px 16px;text-align:center;font-size:14px;color:#1e293b;font-weight:700;border-bottom:1px solid #f1f5f9;">Unlimited</td>
-  </tr>
-  <tr style="background:#ffffff;">
-    <td style="padding:14px 16px;font-size:14px;color:#1e293b;font-weight:600;border-bottom:1px solid #f1f5f9;">Email Reports</td>
-    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✗</td>
-    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✓</td>
-    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✓</td>
-  </tr>
-  <tr style="background:#f8fafc;">
-    <td style="padding:14px 16px;font-size:14px;color:#1e293b;font-weight:600;border-bottom:1px solid #f1f5f9;">Chemical Alerts</td>
-    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✗</td>
-    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✓</td>
-    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✓</td>
-  </tr>
-  <tr style="background:#ffffff;">
-    <td style="padding:14px 16px;font-size:14px;color:#1e293b;font-weight:600;border-bottom:1px solid #f1f5f9;">Weekly Newsletter</td>
-    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✗</td>
-    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✗</td>
-    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✓</td>
-  </tr>
-  <tr style="background:#f8fafc;">
-    <td style="padding:14px 16px;font-size:14px;color:#1e293b;font-weight:600;border-bottom:1px solid #f1f5f9;">Priority Alerts</td>
-    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✗</td>
-    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✗</td>
-    <td style="padding:14px 16px;text-align:center;font-size:20px;border-bottom:1px solid #f1f5f9;">✓</td>
-  </tr>
-  <tr style="background:#ffffff;">
-    <td style="padding:14px 16px;font-size:14px;color:#1e293b;font-weight:600;">Full Scan History</td>
-    <td style="padding:14px 16px;text-align:center;font-size:20px;">✗</td>
-    <td style="padding:14px 16px;text-align:center;font-size:20px;">✗</td>
-    <td style="padding:14px 16px;text-align:center;font-size:20px;">✓</td>
+    <td style="padding:12px 14px;font-size:13px;color:#374151;font-weight:600;">Weekly Newsletter</td>
+    <td style="padding:12px 10px;text-align:center;color:#d1d5db;font-size:16px;">✗</td>
+    <td style="padding:12px 10px;text-align:center;color:#d1d5db;font-size:16px;">✗</td>
+    <td style="padding:12px 10px;text-align:center;color:#16a34a;font-size:16px;">✓</td>
   </tr>
 </table>
 
-<div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:16px;margin:0 0 24px;text-align:center;">
-  <p style="margin:0;color:#16a34a;font-size:14px;font-weight:700;">⏰ Limited time: Pro plan includes free weekly safety newsletter — a $9/mo value, included free.</p>
+<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:13px 16px;margin:0 0 24px;text-align:center;">
+  <p style="margin:0;color:#166534;font-size:13px;font-weight:700;">⏰ Limited time: Pro includes the weekly safety newsletter — a $9/mo value, free.</p>
 </div>
 
-<div style="text-align:center;margin:0 0 16px;">
-  <a href="${appUrl}/checkout?plan=pro" style="display:inline-block;background:#22c55e;color:#fff;font-size:17px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:12px;letter-spacing:-0.3px;">Upgrade to Pro — $14.99/mo →</a>
+<div style="text-align:center;margin:0 0 12px;">
+  ${ctaButton(`${appUrl}/checkout?plan=pro`, 'Upgrade to Pro — $14.99/mo →')}
 </div>
-<div style="text-align:center;margin:0 0 32px;">
-  <a href="${appUrl}/checkout?plan=starter" style="display:inline-block;background:#f1f5f9;color:#475569;font-size:14px;font-weight:600;text-decoration:none;padding:12px 28px;border-radius:10px;border:1px solid #e2e8f0;">Get 50 Scans — $4.99</a>
+<div style="text-align:center;margin:0 0 0;">
+  ${ctaButton(`${appUrl}/checkout?plan=starter`, 'Get 50 Scans — $4.99', 'secondary')}
 </div>
 `
-  return emailWrapper('Your free scans are almost up — don\'t leave your baby unprotected', body)
+  return emailWrapper("Your free scans are almost up — don't leave your baby unprotected", body)
 }
 
 // ─── Day 7 re-engage email ────────────────────────────────────────────────────
@@ -561,44 +671,43 @@ export function buildDay7ReengageEmail(name: string, momStatus?: string): string
   const products = getRecommendedProducts(['heavy-metals'], momStatus ?? 'other').slice(0, 3)
 
   const body = `
-<h2 style="margin:0 0 16px;color:#1e293b;font-size:22px;font-weight:800;">Hi ${name} — this is your last chance 💚</h2>
+${sectionLabel("Last chance")}
+<h2 style="margin:0 0 20px;color:#111827;font-size:22px;font-weight:800;line-height:1.3;">Hi ${name} — one week in. Is your baby's food safe?</h2>
 
-<div style="background:#fef2f2;border-left:4px solid #ef4444;border-radius:0 12px 12px 0;padding:20px;margin:0 0 28px;">
-  <h3 style="margin:0 0 10px;color:#dc2626;font-size:15px;font-weight:700;">A story from one of our moms</h3>
-  <p style="margin:0;color:#475569;font-size:14px;line-height:1.7;font-style:italic;">
-    "My daughter was 9 months old. I'd been feeding her the same organic rice puffs for weeks — I trusted the brand. One afternoon I scanned the label in FoodFactScanner, just out of curiosity. The result came back with a HIGH arsenic warning. I was devastated — and then furious. I'd had no idea. We switched immediately. Her next pediatrician visit showed improved iron levels.
-    I still think about those weeks before I scanned."
-  </p>
-  <p style="margin:12px 0 0;color:#dc2626;font-size:13px;font-weight:700;">— Sarah K., mom of 1, FoodFactScanner Pro member</p>
+<!-- Story -->
+<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:14px;padding:20px 22px;margin:0 0 24px;">
+  <p style="margin:0 0 10px;color:#b91c1c;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;">A story from one of our moms</p>
+  <p style="margin:0 0 12px;color:#374151;font-size:14px;line-height:1.7;font-style:italic;">"My daughter was 9 months old. I'd been feeding her the same organic rice puffs for weeks — I trusted the brand. One afternoon I scanned the label in FoodFactScanner. The result came back HIGH arsenic. I was devastated. We switched immediately. Her next pediatrician visit showed improved iron levels."</p>
+  <p style="margin:0;color:#b91c1c;font-size:13px;font-weight:700;">— Sarah K., mom of 1 · FoodFactScanner Pro member</p>
 </div>
 
-<div style="background:#1e293b;border-radius:12px;padding:24px;margin:0 0 28px;text-align:center;">
-  <p style="margin:0 0 8px;color:#94a3b8;font-size:13px;text-transform:uppercase;letter-spacing:.08em;font-weight:600;">Think about this</p>
-  <p style="margin:0;color:#f8fafc;font-size:18px;font-weight:700;line-height:1.5;">
-    You signed up 7 days ago.<br>
-    <span style="color:#fbbf24;">Your baby has eaten dozens of meals since then.</span><br>
-    Were they safe?
-  </p>
+<!-- Urgency block -->
+<div style="background:#111827;border-radius:14px;padding:24px;margin:0 0 24px;text-align:center;">
+  <p style="margin:0 0 6px;color:#6b7280;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;">Think about this</p>
+  <p style="margin:0;color:#f9fafb;font-size:17px;font-weight:700;line-height:1.6;">You signed up 7 days ago.<br><span style="color:#fbbf24;">Your baby has eaten dozens of meals since then.</span><br>Were they safe?</p>
 </div>
 
-<p style="margin:0 0 24px;color:#475569;font-size:15px;line-height:1.6;">
-  For less than the price of a coffee — <strong>$14.99/mo</strong> — you get unlimited scans, instant recall alerts, and weekly safety reports. That's <strong>50 cents a day</strong> to know exactly what you're feeding your baby.
-</p>
+<p style="margin:0 0 24px;color:#4b5563;font-size:15px;line-height:1.6;">For less than a coffee — <strong style="color:#111827;">$14.99/mo</strong> — you get unlimited scans, instant recall alerts, and weekly safety reports. That's <strong style="color:#111827;">50 cents a day</strong>.</p>
 
-<div style="background:#f0fdf4;border-radius:12px;padding:20px;margin:0 0 28px;">
-  <h3 style="margin:0 0 12px;color:#16a34a;font-size:15px;font-weight:700;">✅ What Pro members get</h3>
-  <p style="margin:0 0 8px;color:#1e293b;font-size:14px;line-height:1.6;">• <strong>Unlimited scans</strong> — check every product, every time</p>
-  <p style="margin:0 0 8px;color:#1e293b;font-size:14px;line-height:1.6;">• <strong>Priority recall alerts</strong> — know before the news does</p>
-  <p style="margin:0 0 8px;color:#1e293b;font-size:14px;line-height:1.6;">• <strong>Weekly safety newsletter</strong> — curated tips for your baby's stage</p>
-  <p style="margin:0;color:#1e293b;font-size:14px;line-height:1.6;">• <strong>Full scan history</strong> — track every product you've checked</p>
+<!-- Feature list -->
+<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:18px 20px;margin:0 0 28px;">
+  <p style="margin:0 0 12px;color:#166534;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;">What Pro members get</p>
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr><td style="padding:5px 0;"><p style="margin:0;color:#374151;font-size:14px;line-height:1.5;"><span style="color:#16a34a;font-weight:700;">✓</span> <strong>Unlimited scans</strong> — check every product, every time</p></td></tr>
+    <tr><td style="padding:5px 0;"><p style="margin:0;color:#374151;font-size:14px;line-height:1.5;"><span style="color:#16a34a;font-weight:700;">✓</span> <strong>Priority recall alerts</strong> — know before the news does</p></td></tr>
+    <tr><td style="padding:5px 0;"><p style="margin:0;color:#374151;font-size:14px;line-height:1.5;"><span style="color:#16a34a;font-weight:700;">✓</span> <strong>Weekly safety newsletter</strong> — tips for your baby's exact stage</p></td></tr>
+    <tr><td style="padding:5px 0;"><p style="margin:0;color:#374151;font-size:14px;line-height:1.5;"><span style="color:#16a34a;font-weight:700;">✓</span> <strong>Full scan history</strong> — every product you've ever checked</p></td></tr>
+  </table>
 </div>
 
-<div style="text-align:center;margin:0 0 16px;">
-  <a href="${appUrl}/checkout?plan=pro" style="display:inline-block;background:#22c55e;color:#fff;font-size:17px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:12px;letter-spacing:-0.3px;">Protect My Baby — Upgrade to Pro →</a>
+<div style="text-align:center;margin:0 0 10px;">
+  ${ctaButton(`${appUrl}/checkout?plan=pro`, 'Protect My Baby — Upgrade to Pro →')}
 </div>
-<p style="text-align:center;margin:0 0 36px;color:#94a3b8;font-size:13px;">Less than a coffee a day. Cancel anytime.</p>
+<p style="text-align:center;margin:0 0 0;color:#9ca3af;font-size:12px;">Less than a coffee a day. Cancel anytime.</p>
 
-<h3 style="margin:0 0 16px;color:#1e293b;font-size:16px;font-weight:700;">🛡️ Parents Who Scanned Also Bought</h3>
+${divider()}
+${sectionLabel('Parents who upgraded also bought')}
+<h3 style="margin:0 0 16px;color:#111827;font-size:17px;font-weight:700;">Trusted Safe Products</h3>
 ${affiliateProductsHtml(products)}
 `
   return emailWrapper('Last chance: protect your baby for less than a coffee', body)
