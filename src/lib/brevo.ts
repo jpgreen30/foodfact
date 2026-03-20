@@ -87,7 +87,9 @@ export interface BrevoContactAttributes {
   BABY_AGE_MONTHS?: number
   PLAN?: string
   BREASTFEEDING?: boolean
-  SIGNUP_DATE?: string  // YYYY-MM-DD, used by cron email sequence
+  SIGNUP_DATE?: string    // YYYY-MM-DD, used by cron email sequence
+  LAST_SCAN_DATE?: string // YYYY-MM-DD, updated on every scan
+  BABY_BIRTH_DATE?: string // YYYY-MM-DD, for milestone email triggers
 }
 
 export async function subscribeContact(
@@ -711,6 +713,299 @@ ${sectionLabel('Parents who upgraded also bought')}
 ${affiliateProductsHtml(products)}
 `
   return emailWrapper('Last chance: protect your baby for less than a coffee', body)
+}
+
+// ─── Weekly scan summary email ────────────────────────────────────────────────
+
+export interface WeeklyScanStats {
+  total: number
+  safe: number
+  caution: number
+  danger: number
+  topChemicals: string[]
+}
+
+export function buildWeeklyScanSummaryEmail(
+  name: string,
+  stats: WeeklyScanStats,
+  userProfile?: UserProfile
+): string {
+  const products = getRecommendedProducts(userProfile?.concerns ?? [], userProfile?.momStatus ?? 'other')
+
+  const scoreBarHtml = `
+<table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
+  <tr>
+    <td width="33%" style="padding:6px;">
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px;text-align:center;">
+        <p style="margin:0 0 2px;color:#16a34a;font-size:22px;font-weight:800;">${stats.safe}</p>
+        <p style="margin:0;color:#6b7280;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">Safe</p>
+      </div>
+    </td>
+    <td width="33%" style="padding:6px;">
+      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px;text-align:center;">
+        <p style="margin:0 0 2px;color:#d97706;font-size:22px;font-weight:800;">${stats.caution}</p>
+        <p style="margin:0;color:#6b7280;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">Caution</p>
+      </div>
+    </td>
+    <td width="33%" style="padding:6px;">
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:14px;text-align:center;">
+        <p style="margin:0 0 2px;color:#dc2626;font-size:22px;font-weight:800;">${stats.danger}</p>
+        <p style="margin:0;color:#6b7280;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">Danger</p>
+      </div>
+    </td>
+  </tr>
+</table>`
+
+  const chemicalsHtml = stats.topChemicals.length > 0 ? `
+${divider()}
+${sectionLabel('Most detected this week')}
+<h3 style="margin:0 0 12px;color:#111827;font-size:15px;font-weight:700;">Top Chemicals Found in Your Scans</h3>
+<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:14px 18px;">
+  ${stats.topChemicals.slice(0, 5).map(c => `
+  <div style="display:flex;align-items:center;padding:6px 0;border-bottom:1px solid #fee2e2;">
+    <span style="color:#b91c1c;font-size:13px;font-weight:600;">⚠ ${c}</span>
+  </div>`).join('')}
+</div>` : ''
+
+  const body = `
+${sectionLabel('Your weekly summary')}
+<h2 style="margin:0 0 8px;color:#111827;font-size:22px;font-weight:800;">Hi ${name}, here's your week in food safety</h2>
+<p style="margin:0 0 24px;color:#6b7280;font-size:15px;">You scanned <strong style="color:#111827;">${stats.total} product${stats.total !== 1 ? 's' : ''}</strong> this week. Here's the breakdown:</p>
+
+${scoreBarHtml}
+
+${stats.danger > 0 ? `
+<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:14px 18px;margin:0 0 20px;">
+  <p style="margin:0;color:#b91c1c;font-size:14px;font-weight:600;">🚨 ${stats.danger} product${stats.danger !== 1 ? 's' : ''} flagged as DANGER — review your scan history and consider switching to safer alternatives below.</p>
+</div>` : stats.caution > 0 ? `
+<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:14px 18px;margin:0 0 20px;">
+  <p style="margin:0;color:#92400e;font-size:14px;font-weight:600;">⚠️ ${stats.caution} product${stats.caution !== 1 ? 's' : ''} flagged as CAUTION — worth reviewing ingredients carefully.</p>
+</div>` : `
+<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:14px 18px;margin:0 0 20px;">
+  <p style="margin:0;color:#166534;font-size:14px;font-weight:600;">✅ Great week! All ${stats.total} products came back clean.</p>
+</div>`}
+
+${chemicalsHtml}
+
+${divider()}
+${sectionLabel('Recommended for you')}
+<h3 style="margin:0 0 16px;color:#111827;font-size:17px;font-weight:700;">Safer Alternatives This Week</h3>
+${affiliateProductsHtml(products)}
+
+<div style="text-align:center;margin:24px 0 0;">
+  ${ctaButton(`${appUrl}/dashboard`, 'View Full Scan History →')}
+</div>
+`
+  return emailWrapper('Your Weekly Scan Summary', body)
+}
+
+// ─── Post-scan upsell email ───────────────────────────────────────────────────
+
+export function buildPostScanUpsellEmail(
+  name: string,
+  scan: ScanResult,
+  plan: string
+): string {
+  const isCaution = scan.overallScore === 'caution'
+  const bannerBg = isCaution ? '#fffbeb' : '#fef2f2'
+  const bannerBorder = isCaution ? '#fde68a' : '#fecaca'
+  const bannerTextColor = isCaution ? '#92400e' : '#991b1b'
+  const bannerLabel = isCaution ? '⚠️ CAUTION DETECTED' : '🚨 DANGER DETECTED'
+
+  const saferProducts = getRecommendedProducts(
+    scan.chemicals.some(c => ['Arsenic', 'Lead', 'Cadmium', 'Mercury'].includes(c.name))
+      ? ['heavy-metals']
+      : ['bpa'],
+    'other'
+  )
+
+  const body = `
+${sectionLabel('Your scan raised a flag')}
+<h2 style="margin:0 0 12px;color:#111827;font-size:22px;font-weight:800;">Hi ${name}, here's what you should know</h2>
+<p style="margin:0 0 20px;color:#6b7280;font-size:15px;line-height:1.6;">Your scan of <strong style="color:#111827;">${scan.productName}</strong> came back with a warning. Here's how to stay protected going forward.</p>
+
+<!-- Score card -->
+<div style="background:${bannerBg};border:1px solid ${bannerBorder};border-radius:12px;padding:16px 18px;margin:0 0 24px;">
+  <p style="margin:0 0 4px;color:${bannerTextColor};font-size:11px;font-weight:800;letter-spacing:.08em;">${bannerLabel}</p>
+  <p style="margin:0;color:#374151;font-size:14px;line-height:1.5;">${scan.chemicals.length > 0 ? `${scan.chemicals.length} concerning ingredient${scan.chemicals.length !== 1 ? 's' : ''} found: <strong>${scan.chemicals.slice(0, 3).map(c => c.name).join(', ')}${scan.chemicals.length > 3 ? '…' : ''}</strong>` : 'Potentially harmful ingredients detected in this product.'}</p>
+</div>
+
+<!-- Upgrade pitch -->
+<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:20px 22px;margin:0 0 24px;">
+  <p style="margin:0 0 12px;color:#166534;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;">Upgrade to Pro to stay protected</p>
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr><td style="padding:5px 0;"><p style="margin:0;color:#374151;font-size:14px;"><span style="color:#16a34a;font-weight:700;">✓</span> <strong>Unlimited scans</strong> — never hit a limit</p></td></tr>
+    <tr><td style="padding:5px 0;"><p style="margin:0;color:#374151;font-size:14px;"><span style="color:#16a34a;font-weight:700;">✓</span> <strong>Recall alerts</strong> — get notified before the news does</p></td></tr>
+    <tr><td style="padding:5px 0;"><p style="margin:0;color:#374151;font-size:14px;"><span style="color:#16a34a;font-weight:700;">✓</span> <strong>Full scan history</strong> — track every product you've checked</p></td></tr>
+    <tr><td style="padding:5px 0;"><p style="margin:0;color:#374151;font-size:14px;"><span style="color:#16a34a;font-weight:700;">✓</span> <strong>Weekly safety newsletter</strong> — stage-specific tips</p></td></tr>
+  </table>
+</div>
+
+<div style="text-align:center;margin:0 0 12px;">
+  ${ctaButton(`${appUrl}/checkout?plan=pro`, 'Upgrade to Pro — $14.99/mo →')}
+</div>
+<p style="text-align:center;margin:0 0 0;color:#9ca3af;font-size:12px;">Cancel anytime. Protect your family from day one.</p>
+
+${divider()}
+${sectionLabel('Safer alternatives')}
+<h3 style="margin:0 0 16px;color:#111827;font-size:17px;font-weight:700;">Products We Trust Instead</h3>
+${affiliateProductsHtml(saferProducts)}
+`
+  return emailWrapper(`⚠️ Your scan of ${scan.productName} flagged a warning`, body)
+}
+
+// ─── Milestone email ──────────────────────────────────────────────────────────
+
+interface MilestoneContent {
+  emoji: string
+  headline: string
+  intro: string
+  tips: string[]
+  productTags: string[]
+}
+
+function getMilestoneContent(months: number): MilestoneContent {
+  if (months === 4) return {
+    emoji: '👀',
+    headline: 'Showing signs of curiosity about food',
+    intro: 'At 4 months, many babies start watching you eat and showing interest in food. The American Academy of Pediatrics recommends waiting until 6 months — but now is the time to learn what\'s safe.',
+    tips: [
+      'Keep exclusively breastfeeding or formula-feeding for now.',
+      'Start learning which foods to introduce first — and which to scan.',
+      'Avoid rice cereal — newer guidelines flag it for arsenic content.',
+    ],
+    productTags: ['heavy-metals'],
+  }
+  if (months === 6) return {
+    emoji: '🥕',
+    headline: 'Time to start solids!',
+    intro: 'Congratulations — 6 months is the recommended time to introduce solid foods. The foods you choose now will shape your baby\'s palate and health for years to come.',
+    tips: [
+      'Start with single-ingredient purees: sweet potato, peas, butternut squash.',
+      'Introduce one new food every 3–5 days to spot any reactions.',
+      'Scan every new product before you feed it — even "organic" labels can hide heavy metals.',
+    ],
+    productTags: ['heavy-metals', 'pesticides'],
+  }
+  if (months === 8) return {
+    emoji: '🤌',
+    headline: 'Ready for finger foods!',
+    intro: 'At 8 months, most babies are ready for soft finger foods and more textural variety. This is an exciting — and important — nutrition stage.',
+    tips: [
+      'Offer soft, small pieces: ripe banana, avocado, soft-cooked carrot.',
+      'Start introducing common allergens (peanut butter, egg) under doctor guidance.',
+      'Scan snack foods carefully — many toddler puffs and crackers test high for arsenic and artificial dyes.',
+    ],
+    productTags: ['bpa', 'artificial-additives'],
+  }
+  if (months === 12) return {
+    emoji: '🎂',
+    headline: 'Happy 1st birthday!',
+    intro: 'What an incredible year. At 12 months, your baby is transitioning to family foods — a huge nutritional shift. Here\'s what you need to know.',
+    tips: [
+      'You can now introduce whole cow\'s milk as a main drink.',
+      'Limit juice — no more than 4 oz/day, and always scan juice brands for arsenic.',
+      'Most family foods are fine now. Scan anything with a long ingredient list.',
+    ],
+    productTags: ['heavy-metals', 'bpa'],
+  }
+  // 18+ months
+  return {
+    emoji: '🌟',
+    headline: 'Toddler nutrition — what matters most now',
+    intro: 'At 18 months, your toddler is eating a wide variety of foods and developing strong preferences. This is the most important window to build healthy habits.',
+    tips: [
+      'Scan all packaged snacks — toddler foods are full of artificial dyes, hidden sugars, and preservatives.',
+      'Keep salt and added sugar low — developing kidneys are sensitive.',
+      'Variety wins: the more diverse the diet now, the fewer nutrition gaps later.',
+    ],
+    productTags: ['heavy-metals', 'artificial-additives'],
+  }
+}
+
+export function buildMilestoneEmail(
+  name: string,
+  months: number,
+  babyName?: string,
+  userProfile?: UserProfile
+): string {
+  const milestone = getMilestoneContent(months)
+  const babyLabel = babyName ?? 'your baby'
+  const products = getRecommendedProducts(
+    milestone.productTags as Array<'heavy-metals' | 'pesticides' | 'bpa' | 'artificial-additives'>,
+    months >= 12 ? 'toddler' : 'newborn'
+  )
+
+  const body = `
+<div style="background:linear-gradient(135deg,#166534 0%,#15803d 100%);border-radius:14px;padding:28px 24px;margin:0 0 24px;text-align:center;">
+  <p style="margin:0 0 8px;font-size:42px;">${milestone.emoji}</p>
+  <p style="margin:0 0 4px;color:rgba(255,255,255,.7);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">${getBabyAgeLabel(months)}</p>
+  <h2 style="margin:0;color:#ffffff;font-size:20px;font-weight:800;line-height:1.3;">${babyName ? `${babyName}: ` : ''}${milestone.headline}</h2>
+</div>
+
+<p style="margin:0 0 24px;color:#4b5563;font-size:15px;line-height:1.7;">Hi ${name}! ${milestone.intro}</p>
+
+${sectionLabel('Tips for this stage')}
+<h3 style="margin:0 0 14px;color:#111827;font-size:16px;font-weight:700;">What to know at ${getBabyAgeLabel(months)}</h3>
+<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px;margin:0 0 24px;">
+  ${milestone.tips.map((t, i) => `
+  <div style="padding:8px 0;${i < milestone.tips.length - 1 ? 'border-bottom:1px solid #f3f4f6;' : ''}">
+    <p style="margin:0;color:#374151;font-size:14px;line-height:1.5;"><span style="color:#16a34a;font-weight:700;">${i + 1}.</span> ${t}</p>
+  </div>`).join('')}
+</div>
+
+<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:14px 18px;margin:0 0 24px;">
+  <p style="margin:0;color:#166534;font-size:14px;font-weight:600;">🛡️ Scan everything you introduce this month — ${babyLabel}'s immune system is still developing and more sensitive to hidden chemicals than adults.</p>
+</div>
+
+<div style="text-align:center;margin:0 0 8px;">
+  ${ctaButton(`${appUrl}/dashboard`, `Scan ${babyName ? babyName + "'s" : "Your Baby's"} Food Now →`)}
+</div>
+
+${divider()}
+${sectionLabel('Recommended for this stage')}
+<h3 style="margin:0 0 16px;color:#111827;font-size:17px;font-weight:700;">Trusted Products for ${getBabyAgeLabel(months)}</h3>
+${affiliateProductsHtml(products)}
+`
+  return emailWrapper(`${babyName ? babyName + ' is ' : ''}${getBabyAgeLabel(months)} — here's what to know`, body)
+}
+
+// ─── Re-engagement email ──────────────────────────────────────────────────────
+
+export function buildReengageEmail(
+  name: string,
+  daysSinceLastScan: number,
+  products: AffiliateProduct[],
+  momStatus?: string
+): string {
+  const timeLabel = daysSinceLastScan >= 14
+    ? `${Math.floor(daysSinceLastScan / 7)} weeks`
+    : `${daysSinceLastScan} days`
+
+  const body = `
+${sectionLabel("We've missed you")}
+<h2 style="margin:0 0 12px;color:#111827;font-size:22px;font-weight:800;">Hi ${name}, it's been ${timeLabel} since your last scan</h2>
+<p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.6;">A lot can change in ${timeLabel}. New recalls, new products, new ingredients to watch out for. Here's what other parents have been scanning:</p>
+
+<!-- Urgency nudge -->
+<div style="background:#111827;border-radius:14px;padding:22px 24px;margin:0 0 24px;">
+  <p style="margin:0 0 8px;color:#6b7280;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">Recent FDA activity</p>
+  <p style="margin:0;color:#f9fafb;font-size:15px;font-weight:600;line-height:1.6;">3 new baby food recalls issued this month. <span style="color:#fbbf24;">Have you checked your pantry?</span></p>
+</div>
+
+<p style="margin:0 0 24px;color:#4b5563;font-size:15px;line-height:1.6;">It only takes 10 seconds to scan a product. Open the app, point your camera, and know instantly what's in your baby's food.</p>
+
+<div style="text-align:center;margin:0 0 8px;">
+  ${ctaButton(`${appUrl}/dashboard`, 'Scan Something Now →')}
+</div>
+<p style="text-align:center;margin:0 0 0;color:#9ca3af;font-size:12px;">Takes 10 seconds. Always free to scan.</p>
+
+${divider()}
+${sectionLabel('Popular right now')}
+<h3 style="margin:0 0 16px;color:#111827;font-size:17px;font-weight:700;">Products Parents Are Checking This Week</h3>
+${affiliateProductsHtml(products)}
+`
+  return emailWrapper("It's been a while — here's what you might have missed", body)
 }
 
 // ─── Automation email dispatcher ─────────────────────────────────────────────

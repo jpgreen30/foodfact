@@ -100,3 +100,7 @@ create trigger profiles_updated_at before update on public.profiles
 
 create trigger user_profiles_updated_at before update on public.user_profiles
   for each row execute procedure public.set_updated_at();
+
+-- Add milestones_sent to user_profiles for tracking which milestone emails have been sent
+alter table public.user_profiles
+  add column if not exists milestones_sent integer[] default '{}';
