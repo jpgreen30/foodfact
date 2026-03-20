@@ -161,27 +161,33 @@ function emailWrapper(title: string, body: string): string {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${title}</title>
 </head>
-<body style="margin:0;padding:0;background:#f8f9fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f9fa;padding:32px 0;">
+<body style="margin:0;padding:0;background:#f0f4f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f4f0;padding:32px 0;">
 <tr><td align="center">
-<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.10);">
 <!-- Header -->
-<tr><td style="background:linear-gradient(135deg,#22c55e 0%,#16a34a 100%);padding:32px 40px;text-align:center;">
-  <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:800;letter-spacing:-0.5px;">🥦 FoodFactScanner</h1>
-  <p style="margin:8px 0 0;color:rgba(255,255,255,.85);font-size:14px;">${title}</p>
+<tr><td style="background:linear-gradient(135deg,#166534 0%,#15803d 60%,#16a34a 100%);padding:28px 40px 24px;text-align:center;">
+  <img src="${appUrl}/logo.svg" alt="FoodFactScanner" height="38" style="display:block;margin:0 auto 14px;max-width:200px;">
+  <div style="display:inline-block;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:4px 14px;">
+    <p style="margin:0;color:rgba(255,255,255,.95);font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">${title}</p>
+  </div>
 </td></tr>
 <!-- Body -->
 <tr><td style="padding:40px;">
 ${body}
 </td></tr>
 <!-- Footer -->
-<tr><td style="background:#f1f5f9;padding:24px 40px;text-align:center;border-top:1px solid #e2e8f0;">
-  <p style="margin:0;color:#94a3b8;font-size:12px;line-height:1.6;">
-    FoodFactScanner · Food safety for families<br>
-    <a href="${appUrl}" style="color:#22c55e;text-decoration:none;">Visit App</a> ·
-    <a href="${appUrl}/unsubscribe" style="color:#94a3b8;text-decoration:none;">Unsubscribe</a><br><br>
-    <em>As an Amazon Associate, FoodFactScanner earns from qualifying purchases.
-    Product recommendations are based on safety ratings and user profiles.</em>
+<tr><td style="background:#f8faf8;padding:24px 40px;text-align:center;border-top:2px solid #e8f0e8;">
+  <img src="${appUrl}/logo.svg" alt="FoodFactScanner" height="22" style="display:block;margin:0 auto 12px;opacity:0.5;">
+  <p style="margin:0 0 8px;color:#6b7280;font-size:12px;font-weight:600;">Food safety for families</p>
+  <p style="margin:0 0 12px;color:#9ca3af;font-size:12px;line-height:1.6;">
+    <a href="${appUrl}" style="color:#16a34a;text-decoration:none;font-weight:600;">Open App</a>
+    <span style="color:#d1d5db;margin:0 8px;">·</span>
+    <a href="${appUrl}/unsubscribe" style="color:#9ca3af;text-decoration:none;">Unsubscribe</a>
+  </p>
+  <p style="margin:0;color:#c4c9c4;font-size:11px;line-height:1.6;font-style:italic;">
+    As an Amazon Associate, FoodFactScanner earns from qualifying purchases.<br>
+    Recommendations are based on safety ratings and your profile.
   </p>
 </td></tr>
 </table>
