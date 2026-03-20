@@ -85,9 +85,36 @@ export default function OnboardingFlow() {
     setSaving(true)
     setSaveError(null)
 
+    // Fast path: if no Supabase session token in storage, skip network calls entirely
+    const sbSession = typeof window !== 'undefined'
+      ? localStorage.getItem('sb-session')
+      : null
+
+    if (!sbSession) {
+      const localUser = getCurrentUser()
+      if (localUser) {
+        saveCurrentUser({ ...localUser, onboardingComplete: true })
+      }
+      router.push('/dashboard')
+      return
+    }
+
     const { createClient } = await import('@/lib/supabase/client')
     const supabase = createClient()
-    const { data: { session } } = await supabase.auth.getSession()
+
+    // Wrap getSession in a timeout so a dead Supabase connection doesn't hang forever
+    let session = null
+    try {
+      const result = await Promise.race([
+        supabase.auth.getSession(),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('timeout')), 5000)
+        ),
+      ])
+      session = (result as Awaited<ReturnType<typeof supabase.auth.getSession>>).data.session
+    } catch {
+      // Supabase unreachable — fall through to mock path
+    }
 
     let saved = false
 
