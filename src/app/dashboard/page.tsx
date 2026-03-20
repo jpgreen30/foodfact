@@ -6,6 +6,7 @@ import { User } from '@/lib/types'
 import UserDashboard from '@/components/dashboard/UserDashboard'
 import { Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { getCurrentUser } from '@/lib/auth'
 
 function profileToUser(profile: Record<string, unknown>): User {
   return {
@@ -33,6 +34,17 @@ export default function DashboardPage() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         if (!session) {
+          // Fall back to mock/localStorage auth (dev mode)
+          const localUser = getCurrentUser()
+          if (localUser) {
+            if (!localUser.onboardingComplete) {
+              router.push('/onboarding')
+            } else {
+              setUser(localUser)
+              setLoading(false)
+            }
+            return
+          }
           router.push('/login')
           return
         }

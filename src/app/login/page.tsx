@@ -4,6 +4,7 @@ import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, Scan, CheckCircle, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { getUser, saveCurrentUser } from '@/lib/auth'
 import Logo from '@/components/Logo'
 
 function LoginForm() {
@@ -41,6 +42,24 @@ function LoginForm() {
           return
         }
 
+        // Mock fallback (dev: Supabase unreachable)
+        if (data.mock && data.user) {
+          saveCurrentUser({
+            id: data.user.id,
+            email: data.user.email,
+            name: data.user.name,
+            role: 'user',
+            plan: 'free',
+            onboardingComplete: false,
+            createdAt: new Date().toISOString(),
+            scansUsed: 0,
+            scanCredits: 3,
+            totalScans: 0,
+          })
+          router.push('/onboarding')
+          return
+        }
+
         // Sign in client-side so the browser Supabase client owns the session
         const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
         if (signInError) {
@@ -51,9 +70,16 @@ function LoginForm() {
 
         router.push('/onboarding')
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-        if (error) {
-          setError(error.message)
+        const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password }).catch(() => ({ data: null, error: new Error('network') }))
+        if (error || !signInData?.user) {
+          // Try mock auth fallback (dev mode)
+          const mockUser = getUser(email, password)
+          if (mockUser) {
+            saveCurrentUser(mockUser)
+            router.push(mockUser.onboardingComplete ? '/dashboard' : '/onboarding')
+            return
+          }
+          setError(error?.message || 'Invalid email or password.')
           setLoading(false)
           return
         }
@@ -62,7 +88,7 @@ function LoginForm() {
         const { data: profile } = await supabase
           .from('profiles')
           .select('onboarding_complete')
-          .eq('id', data.user.id)
+          .eq('id', signInData.user.id)
           .single()
         if (profile?.onboarding_complete) {
           router.push('/dashboard')

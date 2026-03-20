@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronRight, ChevronLeft, Check } from 'lucide-react'
 import Logo from '@/components/Logo'
+import { getCurrentUser, saveCurrentUser } from '@/lib/auth'
 import { MomStatus, DietType, Concern } from '@/lib/types'
 
 import StepWelcome from './steps/StepWelcome'
@@ -144,7 +145,11 @@ export default function OnboardingFlow() {
         }
       }
     } else {
-      // No session — navigate anyway; dashboard will handle redirect
+      // No Supabase session — update localStorage user and proceed (dev/mock mode)
+      const localUser = getCurrentUser()
+      if (localUser) {
+        saveCurrentUser({ ...localUser, onboardingComplete: true })
+      }
       router.push('/dashboard')
       return
     }
