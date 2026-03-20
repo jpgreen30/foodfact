@@ -136,7 +136,7 @@ export async function sendTransactionalEmail(
 ): Promise<void> {
   if (!process.env.BREVO_API_KEY) return
 
-  await fetch(`${BREVO_API_BASE}/smtp/email`, {
+  const res = await fetch(`${BREVO_API_BASE}/smtp/email`, {
     method: 'POST',
     headers: brevoHeaders(),
     body: JSON.stringify({
@@ -148,7 +148,12 @@ export async function sendTransactionalEmail(
       subject,
       htmlContent,
     }),
-  }).catch(console.error)
+  })
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    throw new Error(`Brevo ${res.status}: ${body}`)
+  }
 }
 
 // ─── Email HTML builders ─────────────────────────────────────────────────────
