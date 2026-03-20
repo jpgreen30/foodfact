@@ -21,10 +21,16 @@ export async function POST(req: NextRequest) {
     // Send welcome email on first subscribe
     if (sendWelcome !== false) {
       const html = buildWelcomeEmail(name ?? 'there', momStatus)
-      sendTransactionalEmail(email, name ?? '', 'Welcome to FoodFactScanner! 🥦', html).catch(console.error)
+      try {
+        await sendTransactionalEmail(email, name ?? '', 'Welcome to FoodFactScanner! 🥦', html)
+      } catch (emailErr) {
+        const msg = emailErr instanceof Error ? emailErr.message : String(emailErr)
+        console.error('[subscribe] welcome email failed:', msg)
+        return NextResponse.json({ ok: true, emailError: msg })
+      }
     }
 
-    return NextResponse.json({ ok: true })
+    return NextResponse.json({ ok: true, emailSent: true })
   } catch {
     return NextResponse.json({ error: 'Failed to subscribe' }, { status: 500 })
   }
