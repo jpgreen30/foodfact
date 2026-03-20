@@ -115,7 +115,7 @@ export default function AffiliateShop({ products, profile }: Props) {
       </div>
 
       {/* Products Grid */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
         {filtered.map(product => (
           <div
             key={product.id}
@@ -124,7 +124,7 @@ export default function AffiliateShop({ products, profile }: Props) {
             }`}
           >
             {/* Header */}
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 h-44 relative overflow-hidden">
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 h-36 relative overflow-hidden">
               <img
                 src={product.imageUrl}
                 alt={product.title}
@@ -165,14 +165,14 @@ export default function AffiliateShop({ products, profile }: Props) {
             </div>
 
             {/* Content */}
-            <div className="p-4">
+            <div className="p-2.5 sm:p-4">
               <h3 className="font-bold text-gray-900 text-sm leading-snug mb-1 line-clamp-2">
                 {product.title}
               </h3>
-              <p className="text-xs text-gray-500 mb-3 line-clamp-2">{product.description}</p>
+              <p className="hidden sm:block text-xs text-gray-500 mb-3 line-clamp-2">{product.description}</p>
 
               {/* Tags */}
-              <div className="flex flex-wrap gap-1 mb-3">
+              <div className="hidden sm:flex flex-wrap gap-1 mb-3">
                 {product.tags.slice(0, 3).map(tag => (
                   <span key={tag} className="bg-green-50 text-green-700 text-xs px-1.5 py-0.5 rounded-full">
                     ✓ {tag}
@@ -185,15 +185,15 @@ export default function AffiliateShop({ products, profile }: Props) {
                 <span className="text-xs text-gray-400">({product.reviewCount.toLocaleString()})</span>
               </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-xl font-black text-gray-900">{product.price}</span>
+              <div className="flex flex-col gap-1.5">
+                <span className="text-base sm:text-xl font-black text-gray-900">{product.price}</span>
                 <a
                   href={product.affiliateUrl}
                   target="_blank"
                   rel="noopener noreferrer sponsored"
-                  className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-400 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors"
+                  className="flex items-center justify-center gap-1.5 bg-orange-500 hover:bg-orange-400 text-white text-xs sm:text-sm font-bold w-full py-2 rounded-xl transition-colors"
                 >
-                  <ShoppingCart className="w-4 h-4" />
+                  <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   Buy on Amazon
                 </a>
               </div>

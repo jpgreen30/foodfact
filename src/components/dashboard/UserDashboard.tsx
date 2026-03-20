@@ -28,6 +28,25 @@ interface Props {
   user: UserType
 }
 
+function getSaferAlternatives(chemicals: ScanResult['chemicals']) {
+  const names = chemicals.map(c => c.name.toLowerCase())
+  const hasHeavyMetals = names.some(n =>
+    ['arsenic', 'lead', 'cadmium', 'mercury'].some(m => n.includes(m))
+  )
+  const hasBPA = names.some(n => n.includes('bpa'))
+  const concerns: string[] = []
+  if (hasHeavyMetals) concerns.push('heavy-metals')
+  if (hasBPA) concerns.push('bpa')
+  const matches = AFFILIATE_PRODUCTS.filter(p =>
+    concerns.some(() =>
+      p.tags.includes('no-heavy-metals') ||
+      p.tags.includes('low-arsenic') ||
+      p.category === 'testing-kits'
+    )
+  )
+  return (matches.length > 0 ? matches : AFFILIATE_PRODUCTS.filter(p => p.category === 'organic-food')).slice(0, 3)
+}
+
 export default function UserDashboard({ user }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('home')
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
@@ -552,6 +571,57 @@ export default function UserDashboard({ user }: Props) {
                     </div>
                   )}
 
+                  {/* Safer Alternatives upsell — caution/danger only */}
+                  {(scanResult.overallScore === 'caution' || scanResult.overallScore === 'danger') && (() => {
+                    const alts = getSaferAlternatives(scanResult.chemicals)
+                    if (!alts.length) return null
+                    return (
+                      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            🛡️ Safer Alternatives
+                          </p>
+                          <button
+                            onClick={() => { setActiveTab('shop'); resetScan() }}
+                            className="text-xs text-brand-600 font-semibold hover:underline flex items-center gap-1"
+                          >
+                            Browse All <ChevronRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                          {alts.map(product => (
+                            <a
+                              key={product.id}
+                              href={product.affiliateUrl}
+                              target="_blank"
+                              rel="noopener noreferrer sponsored"
+                              className="group"
+                            >
+                              <div className="bg-gray-50 rounded-xl p-2 mb-1.5 h-20 flex items-center justify-center">
+                                <img
+                                  src={product.imageUrl}
+                                  alt={product.title}
+                                  className="max-h-full object-contain"
+                                  onError={(e) => { e.currentTarget.style.display = 'none' }}
+                                />
+                              </div>
+                              <p className="text-[10px] font-semibold text-gray-700 line-clamp-2 leading-tight mb-1 group-hover:text-brand-700">
+                                {product.title}
+                              </p>
+                              <p className="text-xs font-bold text-green-600">{product.price}</p>
+                              <p className="text-[10px] text-amber-600 font-semibold mt-0.5 flex items-center gap-0.5">
+                                Amazon <ExternalLink className="w-2.5 h-2.5" />
+                              </p>
+                            </a>
+                          ))}
+                        </div>
+                        <p className="text-[10px] text-gray-400 mt-3 text-center">
+                          * Affiliate links — commissions never influence safety scores.
+                        </p>
+                      </div>
+                    )
+                  })()}
+
                   <button
                     onClick={resetScan}
                     className="w-full btn-primary py-3 rounded-xl font-bold text-sm"
@@ -691,7 +761,7 @@ export default function UserDashboard({ user }: Props) {
                   </div>
                   <span className="text-xs font-bold bg-amber-100 text-amber-700 px-2 py-1 rounded-full">Amazon Deals</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {AFFILIATE_PRODUCTS.filter(p => p.badge).slice(0, 3).map(product => (
                     <a
                       key={product.id}
@@ -700,7 +770,12 @@ export default function UserDashboard({ user }: Props) {
                       rel="noopener noreferrer sponsored"
                       className="bg-white rounded-xl p-3 border border-amber-100 hover:border-amber-300 hover:shadow-sm transition-all"
                     >
-                      <img src={product.imageUrl} alt={product.title} className="w-full h-24 object-cover rounded-lg mb-2" />
+                      <img
+                        src={product.imageUrl}
+                        alt={product.title}
+                        className="w-full h-28 object-contain rounded-lg mb-2 bg-white"
+                        onError={(e) => { e.currentTarget.style.display = 'none' }}
+                      />
                       <span className="inline-block bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full mb-1">{product.badge}</span>
                       <p className="text-xs font-bold text-gray-800 line-clamp-2 mb-1">{product.title}</p>
                       <p className="text-sm font-bold text-green-600">{product.price}</p>
