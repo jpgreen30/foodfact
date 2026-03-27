@@ -1,0 +1,358 @@
+{
+  "name": "Social Media Auto-Poster - All Platforms (Pinterest, Twitter, Facebook, Instagram, TikTok)",
+  "description": "Automatically posts new blog articles from foodfactscanner.com to all social media platforms using Make.com. Hourly RSS check, deduplication, parallel posting with platform-specific content optimization.",
+  "version": 1,
+  "modules": [
+    {
+      "id": "schedule1",
+      "type": "Schedule",
+      "name": "Hourly Schedule",
+      "configuration": {
+        "scheduleType": "simple",
+        "interval": 1,
+        "timeUnit": "hours",
+        "startTime": "00:00"
+      }
+    },
+    {
+      "id": "http_rss",
+      "type": "HTTP",
+      "name": "Fetch RSS Feed",
+      "configuration": {
+        "method": "GET",
+        "url": "https://foodfactscanner.com/blog/rss",
+        "followRedirects": true,
+        "responseFormat": "auto"
+      }
+    },
+    {
+      "id": "xml_parse",
+      "type": "Tools",
+      "name": "Parse RSS XML",
+      "configuration": {
+        "operation": "xmlParse",
+        "xml": "{{http_rss.body}}"
+      }
+    },
+    {
+      "id": "router_new_items",
+      "type": "FlowControl",
+      "name": "Router - Loop Through Items",
+      "configuration": {
+        "operation": "forEach",
+        "array": "{{xml_parse.rss.channel.item}}",
+        "batchSize": 1
+      }
+    },
+    {
+      "id": "data_store_search",
+      "type": "DataStore",
+      "name": "Check if Already Posted",
+      "configuration": {
+        "operation": "searchRecords",
+        "dataStore": "PostedArticles",
+        "limit": 1,
+        "conditions": {
+          "operator": "and",
+          "conditions": [
+            {
+              "field": "guid",
+              "operator": "equal",
+              "value": "{{router_new_items.item.guid}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "router_duplicate_check",
+      "type": "FlowControl",
+      "name": "Router - Skip if Duplicate",
+      "configuration": {
+        "operation": "route",
+        "rules": [
+          {
+            "name": "Already Posted",
+            "condition": "{{data_store_search.total}} > 0"
+          },
+          {
+            "name": "New Post",
+            "condition": "{{data_store_search.total}} = 0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "google_sheets_lookup",
+      "type": "GoogleSheets",
+      "name": "Get Image Mapping",
+      "configuration": {
+        "operation": "searchRows",
+        "connection": "YOUR_GOOGLE_SHEETS_CONNECTION",
+        "spreadsheetId": "YOUR_SPREADSHEET_ID",
+        "sheetName": "Sheet1",
+        "range": "A:F",
+        "conditions": {
+          "operator": "and",
+          "conditions": [
+            {
+              "field": "article_slug",
+              "operator": "equal",
+              "value": "{{router_new_items.item.link}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "transform_setup",
+      "type": "Tools",
+      "name": "Transform RSS to Platform Content",
+      "configuration": {
+        "operation": "setVariables",
+        "variables": [
+          {
+            "name": "article_title",
+            "value": "{{router_new_items.item.title}}"
+          },
+          {
+            "name": "article_description",
+            "value": "{{router_new_items.item.description}}"
+          },
+          {
+            "name": "article_url",
+            "value": "https://foodfactscanner.com{{router_new_items.item.link}}"
+          },
+          {
+            "name": "article_guid",
+            "value": "{{router_new_items.item.guid}}"
+          },
+          {
+            "name": "pinterest_title",
+            "value": "{{router_new_items.item.title | slice: 0, 100}}"
+          },
+          {
+            "name": "pinterest_desc",
+            "value": "{{router_new_items.item.description | slice: 0, 400}}... Read more: https://foodfactscanner.com{{router_new_items.item.link}} #BabyFoodSafety #Parenting"
+          },
+          {
+            "name": "twitter_text",
+            "value": "{{router_new_items.item.title}} {{router_new_items.item.description | slice: 0, 80}}... https://foodfactscanner.com{{router_new_items.item.link}} #BabyFoodSafety #Parenting"
+          },
+          {
+            "name": "twitter_text_short",
+            "value": "{{router_new_items.item.title}} https://foodfactscanner.com{{router_new_items.item.link}} #BabyFoodSafety"
+          },
+          {
+            "name": "facebook_message",
+            "value": "{{router_new_items.item.title}}\n\n{{router_new_items.item.description}}\n\nRead the full guide: https://foodfactscanner.com{{router_new_items.item.link}}"
+          },
+          {
+            "name": "tiktok_desc",
+            "value": "{{router_new_items.item.title}} ↓ Tap link in bio for full guide!\n\n#BabyFoodSafety #ParentingTips #HealthyBaby #FoodFacts"
+          },
+          {
+            "name": "hashtags",
+            "value": "#BabyFoodSafety #Parenting #HealthyBaby"
+          }
+        ]
+      }
+    },
+    {
+      "id": "router_pinterest_board",
+      "type": "FlowControl",
+      "name": "Route Pinterest to Board",
+      "configuration": {
+        "operation": "route",
+        "rules": [
+          {
+            "name": "Baby Food Safety",
+            "condition": "{{router_new_items.item.link}} contains 'heavy-metals' OR {{router_new_items.item.link}} contains 'organic'"
+          },
+          {
+            "name": "Product Alerts",
+            "condition": "{{router_new_items.item.link}} contains 'recall'"
+          },
+          {
+            "name": "Prenatal Nutrition",
+            "condition": "{{router_new_items.item.link}} contains 'prenatal' OR {{router_new_items.item.link}} contains 'vitamin'"
+          },
+          {
+            "name": "Baby Food Brands",
+            "condition": "{{router_new_items.item.link}} contains 'brand' OR {{router_new_items.item.link}} contains 'ranking'"
+          },
+          {
+            "name": "Parenting Tips",
+            "condition": "true"
+          }
+        ]
+      }
+    },
+    {
+      "id": "pinterest_create",
+      "type": "Pinterest",
+      "name": "Create Pinterest Pin",
+      "configuration": {
+        "operation": "createPin",
+        "connection": "Pinterest - FoodFactScanner",
+        "boardId": "{{get_board_id_from_name(router_pinterest_board.name)}}",
+        "imageUrl": "{{google_sheets_lookup.rows[0].pinterest_image}}",
+        "title": "{{transform_setup.pinterest_title}}",
+        "description": "{{transform_setup.pinterest_desc}}",
+        "link": "{{transform_setup.article_url}}",
+        "publish": "immediately"
+      }
+    },
+    {
+      "id": "twitter_create",
+      "type": "Twitter",
+      "name": "Create Tweet",
+      "configuration": {
+        "operation": "createTweet",
+        "connection": "Twitter - FoodFactScanner",
+        "text": "{{transform_setup.twitter_text_short if length(transform_setup.twitter_text_short) <= 280 else transform_setup.twitter_text_short | slice: 0, 277}}...",
+        "media": "{{google_sheets_lookup.rows[0].twitter_image}}"
+      }
+    },
+    {
+      "id": "facebook_create",
+      "type": "FacebookPages",
+      "name": "Create Facebook Post",
+      "configuration": {
+        "operation": "createPost",
+        "connection": "Facebook/IG - FoodFactScanner",
+        "pageId": "YOUR_FACEBOOK_PAGE_ID",
+        "message": "{{transform_setup.facebook_message}}",
+        "link": "{{transform_setup.article_url}}",
+        "picture": "{{google_sheets_lookup.rows[0].facebook_image}}",
+        "publish": "immediately"
+      }
+    },
+    {
+      "id": "tiktok_create",
+      "type": "TikTok",
+      "name": "Create TikTok Video",
+      "configuration": {
+        "operation": "createVideo",
+        "connection": "TikTok - FoodFactScanner",
+        "videoUrl": "{{google_sheets_lookup.rows[0].tiktok_video}}",
+        "description": "{{transform_setup.tiktok_desc}}",
+        "privacyLevel": "public",
+        "publish": "immediately"
+      }
+    },
+    {
+      "id": "data_store_add",
+      "type": "DataStore",
+      "name": "Mark Article as Posted",
+      "configuration": {
+        "operation": "addRecord",
+        "dataStore": "PostedArticles",
+        "record": {
+          "guid": "{{transform_setup.article_guid}}",
+          "posted_at": "{{now}}",
+          "title": "{{transform_setup.article_title}}"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "fromModule": "schedule1",
+      "toModule": "http_rss"
+    },
+    {
+      "fromModule": "http_rss",
+      "toModule": "xml_parse"
+    },
+    {
+      "fromModule": "xml_parse",
+      "toModule": "router_new_items"
+    },
+    {
+      "fromModule": "router_new_items.newItem",
+      "toModule": "data_store_search"
+    },
+    {
+      "fromModule": "data_store_search",
+      "toModule": "router_duplicate_check"
+    },
+    {
+      "fromModule": "router_duplicate_check.New Post",
+      "toModule": "google_sheets_lookup"
+    },
+    {
+      "fromModule": "google_sheets_lookup",
+      "toModule": "transform_setup"
+    },
+    {
+      "fromModule": "transform_setup",
+      "toModule": "router_pinterest_board",
+      "branch": true
+    },
+    {
+      "fromModule": "router_pinterest_board.Baby Food Safety",
+      "toModule": "pinterest_create"
+    },
+    {
+      "fromModule": "router_pinterest_board.Product Alerts",
+      "toModule": "pinterest_create"
+    },
+    {
+      "fromModule": "router_pinterest_board.Prenatal Nutrition",
+      "toModule": "pinterest_create"
+    },
+    {
+      "fromModule": "router_pinterest_board.Baby Food Brands",
+      "toModule": "pinterest_create"
+    },
+    {
+      "fromModule": "router_pinterest_board.Parenting Tips",
+      "toModule": "pinterest_create"
+    },
+    {
+      "fromModule": "transform_setup",
+      "toModule": "twitter_create",
+      "branch": true
+    },
+    {
+      "fromModule": "transform_setup",
+      "toModule": "facebook_create",
+      "branch": true
+    },
+    {
+      "fromModule": "transform_setup",
+      "toModule": "tiktok_create",
+      "branch": true
+    },
+    {
+      "fromModule": "pinterest_create",
+      "toModule": "data_store_add",
+      "branch": true
+    },
+    {
+      "fromModule": "twitter_create",
+      "toModule": "data_store_add",
+      "branch": true
+    },
+    {
+      "fromModule": "facebook_create",
+      "toModule": "data_store_add",
+      "branch": true
+    },
+    {
+      "fromModule": "tiktok_create",
+      "toModule": "data_store_add",
+      "branch": true
+    }
+  ],
+  "settings": {
+    "errorHandler": {
+      "continueOnError": false,
+      "notifyOnError": true
+    },
+    "queue": {
+      "maxConcurrentRuns": 1
+    }
+  }
+}
