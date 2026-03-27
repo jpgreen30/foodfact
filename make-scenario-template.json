@@ -1,0 +1,115 @@
+{
+  "name": "Pinterest - Bulk Upload All Pins",
+  "description": "Automatically upload all FoodFactScanner pins to Pinterest on a schedule",
+  "modules": [
+    {
+      "id": "schedule1",
+      "type": "Schedule",
+      "name": "Daily Schedule",
+      "configuration": {
+        "scheduleType": "simple",
+        "interval": 1,
+        "timeUnit": "days",
+        "startTime": "09:00"
+      }
+    },
+    {
+      "id": "http1",
+      "type": "HTTP",
+      "name": "Get Pin Data",
+      "configuration": {
+        "method": "GET",
+        "url": "https://YOUR-GOOGLE-SHEETS-EXPORT-URL/pins-data.csv",
+        "followRedirects": true
+      }
+    },
+    {
+      "id": "csv1",
+      "type": "Tools",
+      "name": "Parse CSV",
+      "configuration": {
+        "operation": "csvParse",
+        "csv": "{{http1.body}}",
+        "hasHeaders": true,
+        "delimiter": ","
+      }
+    },
+    {
+      "id": "iterator1",
+      "type": "Tools",
+      "name": "Iterator",
+      "configuration": {
+        "operation": "iterate",
+        "array": "{{csv1}}",
+        "batchSize": 1
+      }
+    },
+    {
+      "id": "router1",
+      "type": "FlowControl",
+      "name": "Route to Board",
+      "configuration": {
+        "operation": "route",
+        "rules": [
+          {
+            "name": "Baby Food Safety",
+            "condition": "{{iterator.row.board}} == 'Baby Food Safety'"
+          },
+          {
+            "name": "Prenatal Nutrition",
+            "condition": "{{iterator.row.board}} == 'Prenatal Nutrition'"
+          },
+          {
+            "name": "Product Alerts",
+            "condition": "{{iterator.row.board}} == 'Product Alerts'"
+          },
+          {
+            "name": "Baby Food Brands",
+            "condition": "{{iterator.row.board}} == 'Baby Food Brands'"
+          },
+          {
+            "name": "Parenting Tips",
+            "condition": "{{iterator.row.board}} == 'Parenting Tips'"
+          }
+        ]
+      }
+    },
+    {
+      "id": "pinterest1",
+      "type": "Pinterest",
+      "name": "Create Pin - Baby Food Safety",
+      "configuration": {
+        "operation": "createPin",
+        "connection": "Pinterest - FoodFactScanner",
+        "boardId": "YOUR-BOARD-ID-HERE",
+        "imageUrl": "{{iterator.row.image_url}}",
+        "title": "{{iterator.row.title}}",
+        "description": "{{iterator.row.description}}",
+        "link": "https://foodfactscanner.com{{iterator.row.link}}",
+        "publish": "immediately"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "fromModule": "schedule1",
+      "toModule": "http1"
+    },
+    {
+      "fromModule": "http1",
+      "toModule": "csv1"
+    },
+    {
+      "fromModule": "csv1",
+      "toModule": "iterator1"
+    },
+    {
+      "fromModule": "iterator1",
+      "toModule": "router1"
+    },
+    {
+      "fromModule": "router1.Baby Food Safety",
+      "toModule": "pinterest1"
+    }
+  ]
+}
