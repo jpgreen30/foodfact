@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://foodfactscanner.com/sitemap.xml
+
+# Prevent crawling of admin/dashboard areas (unless logged in)
+Disallow: /dashboard/
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /reset-password
+
+# Allow all blog content
+Allow: /blog/
