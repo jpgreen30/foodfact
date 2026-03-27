@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>FoodFactScanner Pin Generator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f3f4f6; }
+    .pin-preview {
+      width: 1000px;
+      height: 1500px;
+      background: linear-gradient(135deg, #2563eb, #10b981);
+      border-radius: 24px;
+      position: relative;
+      overflow: hidden;
+      margin: 20px auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      text-align: center;
+      padding: 40px;
+      box-sizing: border-box;
+    }
+    .pin-title { font-size: 80px; font-weight: bold; margin-bottom: 20px; max-width: 900px; }
+    .pin-subtitle { font-size: 40px; margin-bottom: 30px; max-width: 800px; }
+    .pin-cta {
+      background: white;
+      color: #2563eb;
+      padding: 20px 60px;
+      border-radius: 50px;
+      font-size: 32px;
+      font-weight: bold;
+      margin-top: 40px;
+    }
+    .controls { text-align: center; margin: 20px; }
+    button { padding: 15px 30px; margin: 10px; font-size: 16px; cursor: pointer; }
+    .variations { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 20px; }
+    .variation-btn { padding: 10px 20px; background: #e5e7eb; border: none; border-radius: 8px; cursor: pointer; }
+    .variation-btn.active { background: #2563eb; color: white; }
+    #downloadLink { display: none; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1 style="text-align: center;">FoodFactScanner Pinterest Pin Generator</h1>
+  <p style="text-align: center;">Customize and download pins for Pinterest</p>
+
+  <div class="controls">
+    <div class="variations">
+      <button class="variation-btn active" onclick="setVariation('heavy-metals')">Heavy Metals</button>
+      <button class="variation-btn" onclick="setVariation('organic')">Organic Myth</button>
+      <button class="variation-btn" onclick="setVariation('recalls')">Recalls</button>
+      <button class="variation-btn" onclick="setVariation('prenatal')">Prenatal</button>
+      <button class="variation-btn" onclick="setVariation('brands')">Brands</button>
+    </div>
+    <br><br>
+    <button onclick="generatePin()">Update Preview</button>
+    <button onclick="downloadPin()">Download PNG (1000x1500)</button>
+    <a id="downloadLink" download="pin.png"></a>
+  </div>
+
+  <div id="pinPreview" class="pin-preview"></div>
+
+  <script>
+    const variations = {
+      'heavy-metals': {
+        title: '95% OF BABY FOOD CONTAINS TOXIC HEAVY METALS',
+        subtitle: 'Arsenic • Lead • Cadmium • Mercury',
+        cta: 'LEARN MORE →',
+        gradient: 'linear-gradient(135deg, #1e3a8a, #3b82f6)',
+        ctaBg: 'white',
+        ctaColor: '#2563eb'
+      },
+      'organic': {
+        title: 'ORGANIC ≠ SAFE',
+        subtitle: 'Heavy metals found in organic baby food too',
+        cta: 'DISCOVER THE TRUTH →',
+        gradient: 'linear-gradient(135deg, #10b981, #059669)',
+        ctaBg: 'white',
+        ctaColor: '#10b981'
+      },
+      'recalls': {
+        title: '47 RECALLS IN 2024 ALONE',
+        subtitle: 'Most parents never get the alert in time',
+        cta: 'STAY SAFE →',
+        gradient: 'linear-gradient(135deg, #dc2626, #f97316)',
+        ctaBg: 'white',
+        ctaColor: '#dc2626'
+      },
+      'prenatal': {
+        title: 'PRENATAL VITAMINS: What to look for',
+        subtitle: '✓ Methylfolate  ✗ Synthetic folic acid',
+        cta: 'GET THE GUIDE →',
+        gradient: 'linear-gradient(135deg, #a855f7, #ec4899)',
+        ctaBg: 'white',
+        ctaColor: '#a855f7'
+      },
+      'brands': {
+        title: 'TOP 5 SAFEST BABY FOOD BRANDS',
+        subtitle: '2025 Rankings • Lab tested • Transparent',
+        cta: 'FULL RANKINGS →',
+        gradient: 'linear-gradient(135deg, #10b981, #059669)',
+        ctaBg: 'white',
+        ctaColor: '#10b981'
+      }
+    };
+
+    let currentVariation = 'heavy-metals';
+
+    function setVariation(variation) {
+      currentVariation = variation;
+      document.querySelectorAll('.variation-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent.toLowerCase().includes(variation.replace('-', ' ')));
+      });
+      generatePin();
+    }
+
+    function generatePin() {
+      const data = variations[currentVariation];
+      const preview = document.getElementById('pinPreview');
+      preview.style.background = data.gradient;
+      preview.innerHTML = `
+        <div class="pin-title">${data.title}</div>
+        <div class="pin-subtitle">${data.subtitle}</div>
+        <div class="pin-cta" style="background:${data.ctaBg}; color:${data.ctaColor}">${data.cta}</div>
+      `;
+    }
+
+    function downloadPin() {
+      const preview = document.getElementById('pinPreview');
+      html2canvas(preview, {
+        width: 1000,
+        height: 1500,
+        scale: 1
+      }).then(canvas => {
+        const link = document.getElementById('downloadLink');
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    }
+
+    // Generate initial pin
+    generatePin();
+  </script>
+</body>
+</html>

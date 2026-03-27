@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1000" height="1500" viewBox="0 0 1000 1500" xmlns="http://www.w3.org/2000/svg">
+  <!-- Template 1: Heavy Metals -->
+  <g id="template-heavy-metals">
+    <rect width="1000" height="1500" fill="url(#gradient-blue)"/>
+    <defs>
+      <linearGradient id="gradient-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#1e3a8a"/>
+        <stop offset="100%" stop-color="#3b82f6"/>
+      </linearGradient>
+    </defs>
+    <text x="500" y="450" font-family="Montserrat, sans-serif" font-size="80" font-weight="bold" fill="white" text-anchor="middle">95% OF BABY FOOD</text>
+    <text x="500" y="550" font-family="Montserrat, sans-serif" font-size="70" font-weight="bold" fill="white" text-anchor="middle">CONTAINS TOXIC</text>
+    <text x="500" y="650" font-family="Montserrat, sans-serif" font-size="70" font-weight="bold" fill="white" text-anchor="middle">HEAVY METALS</text>
+    <text x="500" y="750" font-family="Montserrat, sans-serif" font-size="40" fill="white" text-anchor="middle">Arsenic • Lead • Cadmium • Mercury</text>
+    <rect x="150" y="850" width="700" height="100" rx="20" fill="#10b981"/>
+    <text x="500" y="910" font-family="Montserrat, sans-serif" font-size="35" font-weight="bold" fill="white" text-anchor="middle">LEARN MORE →</text>
+  </g>
+
+  <!-- Template 2: Organic Myth -->
+  <g id="template-organic">
+    <rect width="500" height="1500" fill="#10b981"/>
+    <rect x="500" width="500" height="1500" fill="white"/>
+    <text x="250" y="500" font-family="Montserrat, sans-serif" font-size="90" font-weight="bold" fill="white" text-anchor="middle">ORGANIC</text>
+    <text x="250" y="600" font-family="Montserrat, sans-serif" font-size="90" font-weight="bold" fill="white" text-anchor="middle">≠ SAFE</text>
+    <text x="750" y="800" font-family="Montserrat, sans-serif" font-size="40" fill="#374151" text-anchor="middle">Heavy metals found in</text>
+    <text x="750" y="850" font-family="Montserrat, sans-serif" font-size="40" fill="#374151" text-anchor="middle">organic baby food too</text>
+    <rect x="200" y="1000" width="600" height="80" rx="15" fill="#2563eb"/>
+    <text x="500" y="1055" font-family="Montserrat, sans-serif" font-size="30" font-weight="bold" fill="white" text-anchor="middle">DISCOVER THE TRUTH →</text>
+  </g>
+
+  <!-- Template 3: Recalls -->
+  <g id="template-recalls">
+    <rect width="1000" height="1500" fill="url(#gradient-red)"/>
+    <defs>
+      <linearGradient id="gradient-red" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#dc2626"/>
+        <stop offset="100%" stop-color="#f97316"/>
+      </linearGradient>
+    </defs>
+    <text x="500" y="400" font-family="Montserrat, sans-serif" font-size="90" font-weight="bold" fill="white" text-anchor="middle">47 RECALLS</text>
+    <text x="500" y="500" font-family="Montserrat, sans-serif" font-size="90" font-weight="bold" fill="white" text-anchor="middle">IN 2024 ALONE</text>
+    <text x="500" y="700" font-family="Montserrat, sans-serif" font-size="40" fill="white" text-anchor="middle">Most parents never get</text>
+    <text x="500" y="750" font-family="Montserrat, sans-serif" font-size="40" fill="white" text-anchor="middle">the alert in time</text>
+    <rect x="200" y="950" width="600" height="100" rx="20" fill="white"/>
+    <text x="500" y="1010" font-family="Montserrat, sans-serif" font-size="35" font-weight="bold" fill="#dc2626" text-anchor="middle">STAY SAFE →</text>
+  </g>
+
+  <!-- Template 4: Prenatal Vitamins -->
+  <g id="template-prenatal">
+    <rect width="1000" height="1500" fill="url(#gradient-purple)"/>
+    <defs>
+      <linearGradient id="gradient-purple" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#a855f7"/>
+        <stop offset="100%" stop-color="#ec4899"/>
+      </linearGradient>
+    </defs>
+    <text x="500" y="400" font-family="Montserrat, sans-serif" font-size="70" font-weight="bold" fill="white" text-anchor="middle">PRENATAL VITAMINS:</text>
+    <text x="500" y="500" font-family="Montserrat, sans-serif" font-size="70" font-weight="bold" fill="white" text-anchor="middle">What to look for</text>
+    <text x="300" y="700" font-family="Montserrat, sans-serif" font-size="30" fill="white" text-anchor="middle">✓ Methylfolate</text>
+    <text x="300" y="750" font-family="Montserrat, sans-serif" font-size="30" fill="white" text-anchor="middle">✓ Ferrous Bisglycinate</text>
+    <text x="700" y="700" font-family="Montserrat, sans-serif" font-size="30" fill="#f87171" text-anchor="middle">✗ Synthetic folic acid</text>
+    <text x="700" y="750" font-family="Montserrat, sans-serif" font-size="30" fill="#f87171" text-anchor="middle">✗ Magnesium stearate</text>
+    <rect x="250" y="900" width="500" height="80" rx="15" fill="white"/>
+    <text x="500" y="955" font-family="Montserrat, sans-serif" font-size="30" font-weight="bold" fill="#a855f7" text-anchor="middle">GET THE GUIDE →</text>
+  </g>
+
+  <!-- Template 5: Safe Brands -->
+  <g id="template-brands">
+    <rect width="1000" height="1500" fill="white"/>
+    <rect x="0" y="0" width="100" height="1500" fill="#10b981"/>
+    <text x="500" y="300" font-family="Montserrat, sans-serif" font-size="50" font-weight="bold" fill="#374151" text-anchor="middle">TOP 5 SAFEST</text>
+    <text x="500" y="380" font-family="Montserrat, sans-serif" font-size="50" font-weight="bold" fill="#374151" text-anchor="middle">BABY FOOD BRANDS</text>
+    <text x="500" y="450" font-family="Montserrat, sans-serif" font-size="30" fill="#6b7280" text-anchor="middle">2025 Rankings</text>
+    <circle cx="300" cy="550" r="40" fill="#e5e7eb"/>
+    <text x="300" y="560" font-family="Montserrat, sans-serif" font-size="30" font-weight="bold" fill="#374151" text-anchor="middle">1</text>
+    <circle cx="300" cy="650" r="40" fill="#e5e7eb"/>
+    <text x="300" y="660" font-family="Montserrat, sans-serif" font-size="30" font-weight="bold" fill="#374151" text-anchor="middle">2</text>
+    <circle cx="300" cy="750" r="40" fill="#e5e7eb"/>
+    <text x="300" y="760" font-family="Montserrat, sans-serif" font-size="30" font-weight="bold" fill="#374151" text-anchor="middle">3</text>
+    <text x="500" y="1000" font-family="Montserrat, sans-serif" font-size="30" fill="#374151" text-anchor="middle">✓ Lab tested</text>
+    <text x="500" y="1050" font-family="Montserrat, sans-serif" font-size="30" fill="#374151" text-anchor="middle">✓ No dangerous heavy metals</text>
+    <text x="500" y="1100" font-family="Montserrat, sans-serif" font-size="30" fill="#374151" text-anchor="middle">✓ Transparent testing results</text>
+    <rect x="200" y="1200" width="600" height="80" rx="15" fill="#10b981"/>
+    <text x="500" y="1255" font-family="Montserrat, sans-serif" font-size="28" font-weight="bold" fill="white" text-anchor="middle">FULL RANKINGS →</text>
+  </g>
+</svg>
