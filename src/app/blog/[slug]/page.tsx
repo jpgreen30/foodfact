@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { blogPosts, getBlogPostBySlug } from "@/data/blogPosts";
 import { formatDate } from "@/lib/utils";
-import Image from "next/image";
 import Link from "next/link";
 
 interface PageProps {
@@ -104,20 +103,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           <div className="grid lg:grid-cols-4 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-3">
-              {/* Cover Image */}
-              {post.coverImage && (
-                <div className="mb-8 rounded-2xl overflow-hidden shadow-xl">
-                  <Image
-                    src={post.coverImage}
-                    alt={post.title}
-                    width={1200}
-                    height={630}
-                    className="w-full h-auto"
-                  />
-                </div>
-              )}
-
-              {/* Article Content */}
+              {/* Article Content - No cover image, using gradient background from hero */}
               <article className="prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-brand-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900">
                 <div
                   className="whitespace-pre-wrap"

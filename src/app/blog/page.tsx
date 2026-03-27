@@ -1,6 +1,5 @@
 import { blogPosts, getCategories } from "@/data/blogPosts";
 import { formatDate } from "@/lib/utils";
-import Image from "next/image";
 import Link from "next/link";
 import { Search } from "lucide-react";
 
@@ -124,20 +123,8 @@ export default async function BlogPage({ searchParams }: PageProps) {
                   key={post.slug}
                   className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100"
                 >
-                  {/* Cover Image */}
+                  {/* Cover Image Placeholder - Gradient Background */}
                   <div className="relative h-48 bg-gradient-to-br from-brand-500 to-green-600 overflow-hidden">
-                    {post.coverImage ? (
-                      <Image
-                        src={post.coverImage}
-                        alt={post.title}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <div className="text-6xl">🍼</div>
-                      </div>
-                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
 
                     {/* Category Badge */}
