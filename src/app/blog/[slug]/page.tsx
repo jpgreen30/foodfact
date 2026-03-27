@@ -23,6 +23,8 @@ export async function generateMetadata({ params }: PageProps) {
     };
   }
 
+  const ogImage = `https://foodfactscanner.com/blog/og-${post.slug}.jpg`; // We'll create these later
+
   return {
     title: post.seo.title,
     description: post.seo.description,
@@ -33,6 +35,20 @@ export async function generateMetadata({ params }: PageProps) {
       type: "article",
       publishedTime: post.publishedAt,
       tags: post.tags,
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.seo.title,
+      description: post.seo.description,
+      images: [ogImage],
     },
   };
 }
