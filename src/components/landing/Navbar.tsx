@@ -28,6 +28,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-8">
             <a href="#how-it-works" className="text-gray-600 hover:text-brand-600 font-medium transition-colors">How It Works</a>
             <a href="#features" className="text-gray-600 hover:text-brand-600 font-medium transition-colors">Features</a>
+            <Link href="/blog" className="text-gray-600 hover:text-brand-600 font-medium transition-colors">Blog</Link>
             <a href="#pricing" className="text-gray-600 hover:text-brand-600 font-medium transition-colors">Pricing</a>
             <a href="#testimonials" className="text-gray-600 hover:text-brand-600 font-medium transition-colors">Reviews</a>
           </div>
@@ -58,6 +59,7 @@ export default function Navbar() {
           <div className="px-4 py-4 space-y-3">
             <a href="#how-it-works" className="block py-2 text-gray-700 font-medium" onClick={() => setMobileOpen(false)}>How It Works</a>
             <a href="#features" className="block py-2 text-gray-700 font-medium" onClick={() => setMobileOpen(false)}>Features</a>
+            <Link href="/blog" className="block py-2 text-gray-700 font-medium" onClick={() => setMobileOpen(false)}>Blog</Link>
             <a href="#pricing" className="block py-2 text-gray-700 font-medium" onClick={() => setMobileOpen(false)}>Pricing</a>
             <a href="#testimonials" className="block py-2 text-gray-700 font-medium" onClick={() => setMobileOpen(false)}>Reviews</a>
             <div className="pt-3 border-t border-gray-100 space-y-2">

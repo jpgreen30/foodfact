@@ -1,0 +1,278 @@
+{
+  "name": "FoodFactScanner Social Media Auto-Poster",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "value": 1
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Hourly Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&id=YOUR_SHEET_ID&gid=0",
+        "options": {}
+      },
+      "id": "get-csv",
+      "name": "Get Google Sheet CSV",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        460,
+        300
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google-sheets-connection",
+          "name": "Google Sheets - FoodFactScanner"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "csv-to-items",
+      "name": "CSV Parse",
+      "type": "n8n-nodes-base.csv",
+      "typeVersion": 2.2,
+      "position": [
+        680,
+        300
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "boardId": "={{ $json.pinterest_board_id }}",
+        "title": "={{ $json.pinterest_title }}",
+        "description": "={{ $json.pinterest_desc }}",
+        "link": "={{ $json.article_url }}",
+        "imageUrl": "={{ $json.pinterest_image }}"
+      },
+      "id": "pinterest-pin",
+      "name": "Create Pinterest Pin",
+      "type": "n8n-nodes-base.pinterest",
+      "typeVersion": 1,
+      "position": [
+        900,
+        180
+      ],
+      "credentials": {
+        "pinterestApi": {
+          "id": "pinterest-connection",
+          "name": "Pinterest - FoodFactScanner"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.twitter_text_short }}",
+        "media": "{{ $json.twitter_image }}"
+      },
+      "id": "tweet",
+      "name": "Create Tweet",
+      "type": "n8n-nodes-base.twitter",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        300
+      ],
+      "credentials": {
+        "twitterOAuth1Api": {
+          "id": "twitter-connection",
+          "name": "Twitter - FoodFactScanner"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "pageId": "={{ $json.facebook_page_id }}",
+        "message": "={{ $json.facebook_message }}",
+        "link": "={{ $json.article_url }}",
+        "picture": "={{ $json.facebook_image }}"
+      },
+      "id": "facebook-post",
+      "name": "Create Facebook Post",
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        900,
+        420
+      ],
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "facebook-connection",
+          "name": "Facebook/IG - FoodFactScanner"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "videoUrl": "={{ $json.tiktok_video }}",
+        "description": "={{ $json.tiktok_desc }}",
+        "privacy": "public"
+      },
+      "id": "tiktok-video",
+      "name": "Create TikTok Video",
+      "type": "n8n-nodes-base.tiktok",
+      "typeVersion": 1,
+      "position": [
+        900,
+        540
+      ],
+      "credentials": {
+        "tiktokApi": {
+          "id": "tiktok-connection",
+          "name": "TikTok - FoodFactScanner"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "posted_articles",
+        "values": {
+          "guid": "={{ $json.article_guid }}",
+          "posted_at": "={{ $now }}",
+          "title": "={{ $json.article_title }}"
+        }
+      },
+      "id": "log-to-db",
+      "name": "Log to Database",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-connection",
+          "name": "FoodFactScanner DB"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "sendTo": "foodfactscanner@gmail.com",
+        "subject": "✅ Article Posted: {{ $json.article_title }}",
+        "message": "<h1>{{ $json.article_title }}</h1><p>Article URL: <a href='{{ $json.article_url }}'>{{ $json.article_url }}</a></p><p>Social posts have been created on Pinterest, Twitter, Facebook, and TikTok.</p><p>Posted at: {{ $now }}</p>",
+        "options": {}
+      },
+      "id": "brevo-email",
+      "name": "Send Notification Email",
+      "type": "n8n-nodes-base.brevo",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        300
+      ],
+      "credentials": {
+        "brevoApi": {
+          "id": "brevo-connection",
+          "name": "Brevo - FoodFactScanner"
+        }
+      },
+      "continueOnFail": true
+    }
+  ],
+  "connections": {
+    "Hourly Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Google Sheet CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Google Sheet CSV": {
+      "main": [
+        [
+          {
+            "node": "CSV Parse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CSV Parse": {
+      "main": [
+        [
+          {
+            "node": "Create Pinterest Pin",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Tweet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Facebook Post",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create TikTok Video",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log to Database",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Notification Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 3,
+  "updatedAt": "2025-03-27T07:44:00.000Z",
+  "versionId": "1"
+}
