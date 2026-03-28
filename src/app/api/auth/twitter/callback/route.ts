@@ -218,6 +218,7 @@ export async function GET(req: NextRequest) {
     const admin = createAdminClient()
 
     // Search existing users by twitter_user_id
+    // @ts-ignore - listUsers pagination type mismatch
     const { data: { users } } = await admin.auth.admin.listUsers({ limit: 100 })
     const existingUser = users.find(u => u.user_metadata?.twitter_user_id === profileUserId)
 

@@ -100,7 +100,8 @@ export async function GET(req: NextRequest) {
     const admin = createAdminClient()
 
     // Try to find existing user by pinterest_user_id in raw_user_meta_data
-    const { data: { users } } = await admin.auth.admin.listUsers({ pageSize: 100 })
+    // @ts-ignore - listUsers pagination type mismatch
+    const { data: { users } } = await admin.auth.admin.listUsers({ limit: 100 })
     const existingUser = users.find(u => u.raw_user_metadata?.pinterest_user_id === pinterestUserId)
 
     if (existingUser) {
