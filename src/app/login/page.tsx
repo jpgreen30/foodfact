@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, Suspense, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, Scan, CheckCircle, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -19,6 +19,19 @@ function LoginForm() {
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+
+  // Check authentication status to conditionally show Pinterest button
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data }) => {
+      setIsAuthenticated(!!data.user)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session?.user)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -229,6 +242,40 @@ function LoginForm() {
               {mode === 'signup' ? 'Log in' : 'Sign up free'}
             </button>
           </p>
+
+          {/* Pinterest OAuth button - show only when not authenticated */}
+          {isAuthenticated === false && (
+            <>
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <a
+                  href="/api/auth/twitter"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-[#1DA1F2] rounded-xl hover:bg-[#1DA1F2]/5 transition-colors"
+                >
+                  <svg className="w-5 h-5 text-[#1DA1F2]" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                  <span className="font-semibold text-gray-700">Continue with Twitter</span>
+                </a>
+                <a
+                  href="/api/auth/pinterest"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-red-200 text-red-600 rounded-xl hover:bg-red-50 transition-colors font-semibold text-sm"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.406-5.965 1.406-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.169 1.775 2.169 2.133 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.402.161-1.499-.69-2.436-2.878-2.436-4.632 0-3.78 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.92 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 12-5.373 12-12S18.607 0 12 0z"/>
+                  </svg>
+                  <span className="font-semibold text-gray-700">Connect Pinterest</span>
+                </a>
+              </div>
+            </>
+          )}
         </div>
 
         <p className="text-center text-gray-600 text-xs mt-4">
