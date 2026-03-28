@@ -35,10 +35,10 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-4">Resources</h4>
             <ul className="space-y-2 text-sm">
-              <li><a href="#" className="hover:text-white transition-colors">Baby Food Safety Guide</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Heavy Metals Database</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">FDA Recall Tracker</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Prenatal Nutrition Guide</a></li>
+              <li><Link href="/blog/complete-guide-heavy-metals-baby-food" className="hover:text-white transition-colors">Baby Food Safety Guide</Link></li>
+              <li><Link href="/blog?category=Safety%20Guides" className="hover:text-white transition-colors">Heavy Metals Database</Link></li>
+              <li><Link href="/blog/baby-food-recalls-2024-guide" className="hover:text-white transition-colors">FDA Recall Tracker</Link></li>
+              <li><Link href="/blog/pre-natal-vitamin-safety-guide" className="hover:text-white transition-colors">Prenatal Nutrition Guide</Link></li>
               <li><a href="#faq" className="hover:text-white transition-colors">FAQ</a></li>
             </ul>
           </div>
@@ -47,11 +47,11 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-4">Company</h4>
             <ul className="space-y-2 text-sm">
-              <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Our Science</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Press</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
+              <li><a href="/#about" className="hover:text-white transition-colors">About Us</a></li>
+              <li><a href="/#science" className="hover:text-white transition-colors">Our Science</a></li>
+              <li><a href="/#press" className="hover:text-white transition-colors">Press</a></li>
+              <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
               <li><a href="mailto:hello@foodfactscanner.com" className="hover:text-white transition-colors">Contact</a></li>
             </ul>
           </div>
