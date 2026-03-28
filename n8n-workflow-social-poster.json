@@ -1,4 +1,5 @@
 {
+  "id": "a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890",
   "name": "FoodFactScanner Social Media Auto-Poster",
   "nodes": [
     {
@@ -57,6 +58,21 @@
     },
     {
       "parameters": {
+        "language": "javascript",
+        "code": "const items = $input.all(); const axios = require('axios'); const API_KEY = 'AQ.Ab8RN6Lacs8IroQ3v2GfZ5cL1f_1TZxLLYSJLkPaZ_A0vfYNCA'; const returnItems = []; for (const item of items) { const json = item.json; const imageUrl = json.pinterest_image || json.twitter_image || json.facebook_image; if (!imageUrl) { returnItems.push({ json: { ...json, image_analysis: null, image_analysis_error: 'No image URL found' } }); continue; } try { const imageResponse = await axios.get(imageUrl, { responseType: 'arraybuffer' }); const base64 = Buffer.from(imageResponse.data).toString('base64'); const contentType = imageResponse.headers['content-type'] || 'image/jpeg'; const mimeType = contentType.split(';')[0]; const prompt = 'Describe this image in detail, extract any visible text, and note the main subjects.'; const vertexUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`; const vertexResponse = await axios.post(vertexUrl, { contents: [{ parts: [ { text: prompt }, { inline_data: { mime_type: mimeType, data: base64 } } ] }] }, { headers: { 'Content-Type': 'application/json' } }); const description = vertexResponse.data.candidates?.[0]?.content?.parts?.[0]?.text || 'No description returned'; returnItems.push({ json: { ...json, image_analysis: description } }); } catch (error) { console.error('Vertex AI analysis error:', error.message); returnItems.push({ json: { ...json, image_analysis: null, image_analysis_error: error.message } }); } } return returnItems;"
+      },
+      "id": "analyze-vertexai",
+      "name": "Analyze Image with Vertex AI",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        790,
+        300
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
         "boardId": "={{ $json.pinterest_board_id }}",
         "title": "={{ $json.pinterest_title }}",
         "description": "={{ $json.pinterest_desc }}",
@@ -65,14 +81,14 @@
       },
       "id": "pinterest-pin",
       "name": "Create Pinterest Pin",
-      "type": "n8n-nodes-base.pinterest",
+      "type": "n8n-nodes-pinterest.pinterestCookie",
       "typeVersion": 1,
       "position": [
         900,
         180
       ],
       "credentials": {
-        "pinterestApi": {
+        "pinterestCookieApi": {
           "id": "pinterest-connection",
           "name": "Pinterest - FoodFactScanner"
         }
@@ -131,14 +147,14 @@
       },
       "id": "tiktok-video",
       "name": "Create TikTok Video",
-      "type": "n8n-nodes-base.tiktok",
+      "type": "n8n-nodes-tiktok.tikTok",
       "typeVersion": 1,
       "position": [
         900,
         540
       ],
       "credentials": {
-        "tiktokApi": {
+        "tikTokApi": {
           "id": "tiktok-connection",
           "name": "TikTok - FoodFactScanner"
         }
@@ -188,7 +204,7 @@
         300
       ],
       "credentials": {
-        "brevoApi": {
+        "sendInBlueApi": {
           "id": "brevo-connection",
           "name": "Brevo - FoodFactScanner"
         }
@@ -220,6 +236,17 @@
       ]
     },
     "CSV Parse": {
+      "main": [
+        [
+          {
+            "node": "Analyze Image with Vertex AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Image with Vertex AI": {
       "main": [
         [
           {
