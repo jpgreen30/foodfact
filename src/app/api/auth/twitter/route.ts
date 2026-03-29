@@ -37,6 +37,8 @@ function buildParameterString(params: Record<string, string>): string {
  *
  * State is stored in a signed cookie for CSRF protection.
  */
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: NextRequest) {
   try {
     const apiKey = process.env.TWITTER_API_KEY

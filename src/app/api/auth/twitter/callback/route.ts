@@ -36,6 +36,8 @@ function buildParameterString(params: Record<string, string>): string {
  * 6. Sign in the user (generate password for new users)
  * 7. Redirect to /onboarding?success=twitter
  */
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams

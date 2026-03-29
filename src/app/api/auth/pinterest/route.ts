@@ -12,6 +12,8 @@ import { createAdminClient } from '@/lib/supabase/server'
  *
  * We also include state for CSRF protection (using a random string stored in session).
  */
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: NextRequest) {
   try {
     const clientId = process.env.PINTREST_CLIENT_ID

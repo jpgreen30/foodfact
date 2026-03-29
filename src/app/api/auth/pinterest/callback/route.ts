@@ -19,6 +19,8 @@ import { randomUUID } from 'crypto'
  * Note: This implementation assumes new user sign-up. For existing users, automatic sign-in is not supported
  * due to lack of password. In production, you may want to handle that case by prompting login.
  */
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams
