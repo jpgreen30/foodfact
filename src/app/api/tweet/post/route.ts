@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import { createHmac, crypto } from 'crypto'
+import { createHmac, randomUUID } from 'crypto'
 
 /**
  * Build OAuth 1.0a Authorization header for Twitter API
@@ -20,7 +20,7 @@ function buildOAuthHeader(
     oauth_token: accessToken,
     oauth_signature_method: 'HMAC-SHA1',
     oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
-    oauth_nonce: crypto.randomUUID(),
+    oauth_nonce: randomUUID(),
     oauth_version: '1.0',
   }
 
