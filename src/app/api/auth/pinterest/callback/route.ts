@@ -209,7 +209,7 @@ export async function GET(req: NextRequest) {
     const response = new NextResponse(html, {
       headers: { 'Content-Type': 'text/html; charset=utf-8' },
     })
-    response.cookies.delete('pinterest_oauth_state', { path: '/api/auth/pinterest/callback' })
+    response.cookies.delete('pinterest_oauth_state')
     return response
 
   } catch (err) {
