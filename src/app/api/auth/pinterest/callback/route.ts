@@ -99,16 +99,16 @@ export async function GET(req: NextRequest) {
     // Supabase admin client
     const admin = createAdminClient()
 
-    // Try to find existing user by pinterest_user_id in raw_user_meta_data
+    // Try to find existing user by pinterest_user_id in user_metadata
     // @ts-ignore - listUsers pagination type mismatch
     const { data: { users } } = await admin.auth.admin.listUsers({ limit: 100 })
-    const existingUser = users.find(u => u.raw_user_metadata?.pinterest_user_id === pinterestUserId)
+    const existingUser = users.find(u => u.user_metadata?.pinterest_user_id === pinterestUserId)
 
     if (existingUser) {
       // Update metadata with new tokens
       await admin.auth.admin.updateUserById(existingUser.id, {
         user_metadata: {
-          ...existingUser.raw_user_metadata,
+          ...existingUser.user_metadata,
           pinterest_access_token: accessToken,
           pinterest_refresh_token: refreshToken,
           pinterest_token_expires_at: expiresAt,
