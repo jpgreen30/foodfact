@@ -77,6 +77,85 @@ export default function ProfileSettings({ user }: Props) {
     return () => subscription.unsubscribe()
   }, [])
 
+  // Tweet composer functionality
+  useEffect(() => {
+    const textarea = document.getElementById('tweet-text') as HTMLTextAreaElement | null
+    const countDisplay = document.getElementById('tweet-count')
+    const submitBtn = document.getElementById('tweet-submit')
+    const statusDiv = document.getElementById('tweet-status')
+
+    if (!textarea || !countDisplay || !submitBtn || !statusDiv) return
+
+    function updateCount() {
+      const len = textarea.value.length
+      countDisplay.textContent = `${len}/280`
+      if (len > 280) {
+        countDisplay.className = 'text-xs text-red-500'
+      } else if (len > 200) {
+        countDisplay.className = 'text-xs text-yellow-500'
+      } else {
+        countDisplay.className = 'text-xs text-gray-500'
+      }
+    }
+
+    async function postTweet() {
+      const text = textarea.value.trim()
+      if (!text) return
+      if (text.length > 280) {
+        statusDiv.textContent = 'Tweet exceeds 280 characters'
+        statusDiv.className = 'mt-2 text-sm text-red-600'
+        return
+      }
+
+      submitBtn.disabled = true
+      submitBtn.textContent = 'Posting...'
+      statusDiv.textContent = ''
+      statusDiv.className = 'mt-2 text-sm'
+
+      try {
+        const { createClient } = await import('@/lib/supabase/client')
+        const supabase = createClient()
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.access_token) throw new Error('Not authenticated')
+
+        const res = await fetch('/api/tweet/post', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ text }),
+        })
+
+        const data = await res.json()
+        if (res.ok && data.success) {
+          statusDiv.textContent = '✅ Tweet posted successfully!'
+          statusDiv.className = 'mt-2 text-sm text-green-600'
+          textarea.value = ''
+          updateCount()
+        } else {
+          statusDiv.textContent = `Error: ${data.error || 'Failed to post'}`
+          statusDiv.className = 'mt-2 text-sm text-red-600'
+        }
+      } catch (e) {
+        statusDiv.textContent = 'Network error. Please try again.'
+        statusDiv.className = 'mt-2 text-sm text-red-600'
+      } finally {
+        submitBtn.disabled = false
+        submitBtn.textContent = 'Post Tweet'
+      }
+    }
+
+    textarea.addEventListener('input', updateCount)
+    submitBtn.addEventListener('click', postTweet)
+    updateCount()
+
+    return () => {
+      textarea.removeEventListener('input', updateCount)
+      submitBtn.removeEventListener('click', postTweet)
+    }
+  }, [twitterConnected])
+
   const needsBabyDate = momStatus === 'newborn' || momStatus === 'toddler'
 
   async function handleSave() {
@@ -229,6 +308,34 @@ export default function ProfileSettings({ user }: Props) {
               >
                 Disconnect Twitter
               </button>
+
+              {/* Tweet Composer */}
+              <div className="mt-6 p-4 bg-[#1DA1F2]/5 rounded-xl border border-[#1DA1F2]/20">
+                <div className="flex items-center gap-2 mb-3">
+                  <svg className="w-5 h-5 text-[#1DA1F2]" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                  <h3 className="font-bold text-gray-900">Post to Twitter</h3>
+                </div>
+                <textarea
+                  id="tweet-text"
+                  placeholder="What's happening?"
+                  maxLength={280}
+                  rows={3}
+                  className="w-full p-3 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-[#1DA1F2] focus:border-transparent text-sm"
+                />
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-xs text-gray-500" id="tweet-count">0/280</span>
+                  <button
+                    id="tweet-submit"
+                    className="px-4 py-2 bg-[#1DA1F2] text-white rounded-lg font-semibold text-sm hover:bg-[#1da1f2]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={true}
+                  >
+                    Post Tweet
+                  </button>
+                </div>
+                <div id="tweet-status" className="mt-2 text-sm hidden"></div>
+              </div>
             </div>
           ) : (
             <a
