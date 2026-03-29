@@ -30,18 +30,18 @@ export async function GET(req: NextRequest) {
     // Check for OAuth error from Pinterest
     if (error) {
       return NextResponse.redirect(
-        `/login?error=pinterest_auth_failed&message=${encodeURIComponent(errorDescription || error)}`
+        `${req.nextUrl.origin}/login?error=pinterest_auth_failed&message=${encodeURIComponent(errorDescription || error)}`
       )
     }
 
     if (!code || !state) {
-      return NextResponse.redirect('/login?error=pinterest_missing_params')
+      return NextResponse.redirect(`${req.nextUrl.origin}/login?error=pinterest_missing_params`)
     }
 
     // Verify state
     const stateCookie = req.cookies.get('pinterest_oauth_state')
     if (!stateCookie || stateCookie.value !== state) {
-      return NextResponse.redirect('/login?error=pinterest_invalid_state')
+      return NextResponse.redirect(`${req.nextUrl.origin}/login?error=pinterest_invalid_state`)
     }
 
     // Get environment variables
@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
 
     if (!clientId || !clientSecret || !redirectUri) {
       console.error('Pinterest OAuth environment variables not set')
-      return NextResponse.redirect('/login?error=pinterest_config')
+      return NextResponse.redirect(`${req.nextUrl.origin}/login?error=pinterest_config`)
     }
 
     // Exchange code for access token
@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
     if (!tokenRes.ok) {
       const tokenErr = await tokenRes.json().catch(() => ({}))
       console.error('Pinterest token exchange failed:', tokenErr)
-      return NextResponse.redirect('/login?error=pinterest_token_failed')
+      return NextResponse.redirect(`${req.nextUrl.origin}/login?error=pinterest_token_failed`)
     }
 
     const tokenData = await tokenRes.json()
@@ -88,7 +88,7 @@ export async function GET(req: NextRequest) {
 
     if (!profileRes.ok) {
       console.error('Failed to fetch Pinterest user profile')
-      return NextResponse.redirect('/login?error=pinterest_profile_failed')
+      return NextResponse.redirect(`${req.nextUrl.origin}/login?error=pinterest_profile_failed`)
     }
 
     const pinterestProfile = await profileRes.json()
@@ -121,7 +121,7 @@ export async function GET(req: NextRequest) {
       // For existing users, we cannot sign them in without knowing their password.
       // In a production system, you might send them a magic link or prompt to log in normally.
       // Here we redirect to login with a message that they should log in.
-      return NextResponse.redirect('/login?message=pinterest_linked_exists')
+      return NextResponse.redirect(`${req.nextUrl.origin}/login?message=pinterest_linked_exists`)
     }
 
     // Create a new user
@@ -144,7 +144,7 @@ export async function GET(req: NextRequest) {
 
     if (createError) {
       console.error('Failed to create user:', createError)
-      return NextResponse.redirect('/login?error=pinterest_user_creation_failed')
+      return NextResponse.redirect(`${req.nextUrl.origin}/login?error=pinterest_user_creation_failed`)
     }
 
     // Sign in the new user using password grant
@@ -160,7 +160,7 @@ export async function GET(req: NextRequest) {
 
     if (loginError || !loginData.session) {
       console.error('Failed to sign in new Pinterest user:', loginError)
-      return NextResponse.redirect('/login?error=pinterest_signin_failed')
+      return NextResponse.redirect(`${req.nextUrl.origin}/login?error=pinterest_signin_failed`)
     }
 
     // Build the session object that the client expects in localStorage
@@ -214,6 +214,6 @@ export async function GET(req: NextRequest) {
 
   } catch (err) {
     console.error('Pinterest callback error:', err)
-    return NextResponse.redirect('/login?error=pinterest_unknown')
+    return NextResponse.redirect(`${req.nextUrl.origin}/login?error=pinterest_unknown`)
   }
 }

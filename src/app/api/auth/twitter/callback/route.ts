@@ -45,18 +45,18 @@ export async function GET(req: NextRequest) {
 
     // Check if user denied authorization
     if (denied) {
-      return NextResponse.redirect('/login?error=twitter_auth_denied')
+      return NextResponse.redirect(`${req.nextUrl.origin}/login?error=twitter_auth_denied`)
     }
 
     if (!oauthToken || !oauthVerifier) {
-      return NextResponse.redirect('/login?error=twitter_missing_params')
+      return NextResponse.redirect(`${req.nextUrl.origin}/login?error=twitter_missing_params`)
     }
 
     // Verify the oauth_token matches what we issued (CSRF protection)
     const tokenCookie = req.cookies.get('twitter_oauth_token')
     if (!tokenCookie || tokenCookie.value !== oauthToken) {
       console.error('Twitter OAuth token mismatch')
-      return NextResponse.redirect('/login?error=twitter_invalid_token')
+      return NextResponse.redirect(`${req.nextUrl.origin}/login?error=twitter_invalid_token`)
     }
 
     // Get stored request token secret
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
     const requestTokenSecret = tokenSecretCookie?.value
     if (!requestTokenSecret) {
       console.error('Missing Twitter request token secret')
-      return NextResponse.redirect('/login?error=twitter_missing_token_secret')
+      return NextResponse.redirect(`${req.nextUrl.origin}/login?error=twitter_missing_token_secret`)
     }
 
     // Get credentials
@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
 
     if (!apiKey || !apiSecret) {
       console.error('Twitter OAuth environment variables not set')
-      return NextResponse.redirect('/login?error=twitter_config')
+      return NextResponse.redirect(`${req.nextUrl.origin}/login?error=twitter_config`)
     }
 
     // ============================================
@@ -134,7 +134,7 @@ export async function GET(req: NextRequest) {
     if (!tokenRes.ok) {
       const text = await tokenRes.text()
       console.error('Twitter access token error:', tokenRes.status, text)
-      return NextResponse.redirect('/login?error=twitter_token_failed')
+      return NextResponse.redirect(`${req.nextUrl.origin}/login?error=twitter_token_failed`)
     }
 
     const tokenText = await tokenRes.text()
@@ -147,7 +147,7 @@ export async function GET(req: NextRequest) {
 
     if (!accessToken || !twitterUserId) {
       console.error('Invalid access token response:', tokenData)
-      return NextResponse.redirect('/login?error=twitter_invalid_token_response')
+      return NextResponse.redirect(`${req.nextUrl.origin}/login?error=twitter_invalid_token_response`)
     }
 
     // ============================================
@@ -203,7 +203,7 @@ export async function GET(req: NextRequest) {
 
     if (!profileRes.ok) {
       console.error('Failed to fetch Twitter profile:', profileRes.status)
-      return NextResponse.redirect('/login?error=twitter_profile_failed')
+      return NextResponse.redirect(`${req.nextUrl.origin}/login?error=twitter_profile_failed`)
     }
 
     const twitterProfile = await profileRes.json()
@@ -236,7 +236,7 @@ export async function GET(req: NextRequest) {
       })
 
       // Existing user with Twitter already linked. They need to sign in normally (email/password)
-      return NextResponse.redirect('/login?message=twitter_linked_exists')
+      return NextResponse.redirect(`${req.nextUrl.origin}/login?message=twitter_linked_exists`)
     }
 
     // Create new user with random password
@@ -258,7 +258,7 @@ export async function GET(req: NextRequest) {
 
     if (createError) {
       console.error('Failed to create user:', createError)
-      return NextResponse.redirect('/login?error=twitter_user_creation_failed')
+      return NextResponse.redirect(`${req.nextUrl.origin}/login?error=twitter_user_creation_failed`)
     }
 
     // Sign in the new user via password grant
@@ -274,7 +274,7 @@ export async function GET(req: NextRequest) {
 
     if (loginError || !loginData.session) {
       console.error('Failed to sign in new Twitter user:', loginError)
-      return NextResponse.redirect('/login?error=twitter_signin_failed')
+      return NextResponse.redirect(`${req.nextUrl.origin}/login?error=twitter_signin_failed`)
     }
 
     // Build session data for client
@@ -334,6 +334,6 @@ export async function GET(req: NextRequest) {
 
   } catch (err) {
     console.error('Twitter callback error:', err)
-    return NextResponse.redirect('/login?error=twitter_unknown')
+    return NextResponse.redirect(`${req.nextUrl.origin}/login?error=twitter_unknown`)
   }
 }
