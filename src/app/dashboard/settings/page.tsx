@@ -79,10 +79,17 @@ export default function SettingsPage() {
                   momStatus: profile.mom_status,
                   dueDate: profile.due_date,
                   babyBirthDate: profile.baby_birth_date,
-                  babyAgeMonths: profile.baby_age_months,
                   babyName: profile.baby_name,
+                  babyAgeMonths: profile.baby_age_months,
                   diet: profile.diet || [],
                   concerns: profile.concerns || [],
+                  allergies: profile.allergies || [],
+                  prenatalConditions: profile.prenatal_conditions || [],
+                  postnatalConditions: profile.postnatal_conditions || [],
+                  breastfeeding: profile.breastfeeding || false,
+                  organicPreference: profile.organic_preference || false,
+                  notificationsEnabled: profile.notifications_enabled || false,
+                  weeklyReportEnabled: profile.weekly_report_enabled || false,
                 },
               }
               setUser(userWithProfile)
