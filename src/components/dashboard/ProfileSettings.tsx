@@ -258,9 +258,21 @@ export default function ProfileSettings({ user }: Props) {
               <p className="text-sm text-gray-700">Connected as @{pinterestUsername || 'Pinterest User'}</p>
               <button
                 onClick={async () => {
-                  // Disconnect: clear Pinterest metadata via API endpoint (to be implemented)
-                  // For now, just alert
-                  alert('To disconnect your Pinterest account, please contact support.')
+                  if (!confirm('Are you sure you want to disconnect your Pinterest account?')) return
+                  try {
+                    const res = await fetch('/api/auth/pinterest/disconnect', {
+                      method: 'POST',
+                      credentials: 'include',
+                    })
+                    if (res.ok) {
+                      setPinterestConnected(false)
+                      setPinterestUsername(null)
+                    } else {
+                      alert('Failed to disconnect Pinterest. Please try again.')
+                    }
+                  } catch (e) {
+                    alert('Error disconnecting Pinterest')
+                  }
                 }}
                 className="mt-2 text-sm text-red-600 hover:underline"
               >
