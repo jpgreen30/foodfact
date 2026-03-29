@@ -87,9 +87,9 @@ export default function ProfileSettings({ user }: Props) {
     if (!textareaEl || !countDisplayEl || !submitBtnEl || !statusDivEl) return
 
     const textarea = textareaEl as HTMLTextAreaElement
-    const countDisplay = countDisplayEl
-    const submitBtn = submitBtnEl
-    const statusDiv = statusDivEl
+    const countDisplay = countDisplayEl as HTMLElement
+    const submitBtn = submitBtnEl as HTMLButtonElement
+    const statusDiv = statusDivEl as HTMLElement
 
     function updateCount() {
       const len = textarea.value.length
