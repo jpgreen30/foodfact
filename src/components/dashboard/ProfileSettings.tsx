@@ -79,15 +79,20 @@ export default function ProfileSettings({ user }: Props) {
 
   // Tweet composer functionality
   useEffect(() => {
-    const textarea = document.getElementById('tweet-text') as HTMLTextAreaElement | null
-    const countDisplay = document.getElementById('tweet-count')
-    const submitBtn = document.getElementById('tweet-submit')
-    const statusDiv = document.getElementById('tweet-status')
+    const textareaEl = document.getElementById('tweet-text')
+    const countDisplayEl = document.getElementById('tweet-count')
+    const submitBtnEl = document.getElementById('tweet-submit')
+    const statusDivEl = document.getElementById('tweet-status')
 
-    if (!textarea || !countDisplay || !submitBtn || !statusDiv) return
+    if (!textareaEl || !countDisplayEl || !submitBtnEl || !statusDivEl) return
+
+    const textarea = textareaEl as HTMLTextAreaElement
+    const countDisplay = countDisplayEl
+    const submitBtn = submitBtnEl
+    const statusDiv = statusDivEl
 
     function updateCount() {
-      const len = textarea?.value?.length ?? 0
+      const len = textarea.value.length
       countDisplay.textContent = `${len}/280`
       if (len > 280) {
         countDisplay.className = 'text-xs text-red-500'
@@ -99,7 +104,7 @@ export default function ProfileSettings({ user }: Props) {
     }
 
     async function postTweet() {
-      const text = textarea?.value?.trim()
+      const text = textarea.value.trim()
       if (!text) return
       if (text.length > 280) {
         statusDiv.textContent = 'Tweet exceeds 280 characters'
