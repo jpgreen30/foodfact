@@ -87,7 +87,7 @@ export default function ProfileSettings({ user }: Props) {
     if (!textarea || !countDisplay || !submitBtn || !statusDiv) return
 
     function updateCount() {
-      const len = textarea.value.length
+      const len = textarea?.value?.length ?? 0
       countDisplay.textContent = `${len}/280`
       if (len > 280) {
         countDisplay.className = 'text-xs text-red-500'
@@ -99,7 +99,7 @@ export default function ProfileSettings({ user }: Props) {
     }
 
     async function postTweet() {
-      const text = textarea.value.trim()
+      const text = textarea?.value?.trim()
       if (!text) return
       if (text.length > 280) {
         statusDiv.textContent = 'Tweet exceeds 280 characters'
